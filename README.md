@@ -3,6 +3,8 @@ Elasticsearch-SQL - WIP
 
 Forked to improve improve handling of select clause and add support for elasticsearch query string syntax
 
+##
+
 Query elasticsearch using familiar SQL syntax.
 You can also use ES functions in SQL.
 
