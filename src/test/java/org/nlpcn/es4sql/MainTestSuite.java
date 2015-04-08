@@ -1,7 +1,5 @@
 package org.nlpcn.es4sql;
 
-
-
 import org.elasticsearch.action.admin.cluster.node.info.NodesInfoResponse;
 import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequestBuilder;
 import org.elasticsearch.action.admin.indices.delete.DeleteIndexResponse;
@@ -11,11 +9,15 @@ import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.delete.DeleteRequestBuilder;
 import org.elasticsearch.action.deletebyquery.DeleteByQueryRequestBuilder;
 import org.elasticsearch.action.deletebyquery.DeleteByQueryResponse;
+import org.elasticsearch.client.Client;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.io.ByteStreams;
+import org.elasticsearch.common.settings.ImmutableSettings;
+import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.indices.IndexMissingException;
+import org.elasticsearch.node.NodeBuilder;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.runner.RunWith;
@@ -26,22 +28,28 @@ import static org.nlpcn.es4sql.TestsConstants.*;
 
 @RunWith(Suite.class)
 @Suite.SuiteClasses({
-		QueryTest.class,
+		/*QueryTest.class,
 		MethodQueryTest.class,
 		AggregationTest.class,
 		BugTest.class,
 		DeleteTest.class,
-		ExplainTest.class
+		ExplainTest.class,*/
+	  EsqlQueryTest.class
 })
 public class MainTestSuite {
 
-	private static TransportClient client;
+	private static Client client;
 	private static SearchDao searchDao;
 
 	@BeforeClass
 	public static void setUp() throws Exception {
-		client = new TransportClient();
-		client.addTransportAddress(getTransportAddress());
+		Settings settings = ImmutableSettings.settingsBuilder()
+			.put("discovery.zen.ping.multicast.enabled", false)
+			.put("discovery.zen.ping.unicast.hosts", "localhost")
+			.build();
+		client = NodeBuilder.nodeBuilder().settings(settings).node().client();
+		//client = new TransportClient();
+		//client.addTransportAddress(getTransportAddress());
 
 		NodesInfoResponse nodeInfos = client.admin().cluster().prepareNodesInfo().get();
 		String clusterName = nodeInfos.getClusterName().value();
@@ -53,10 +61,8 @@ public class MainTestSuite {
 		loadBulk("src/test/resources/phrases.json");
 		loadBulk("src/test/resources/online.json");
 
-        prepareOdbcIndex();
-        loadBulk("src/test/resources/odbc-date-formats.json");
-
-
+		prepareOdbcIndex();
+		loadBulk("src/test/resources/odbc-date-formats.json");
 
 		searchDao = new SearchDao(client);
 		System.out.println("Finished the setup process...");
@@ -141,7 +147,7 @@ public class MainTestSuite {
 		return searchDao;
 	}
 
-	public static TransportClient getClient() {
+	public static Client getClient() {
 		return client;
 	}
 
@@ -155,7 +161,7 @@ public class MainTestSuite {
 		}
 
 		if(port == null) {
-			port = "9300";
+			port = "9200";
 			System.out.println("ES_TEST_PORT enviroment variable does not exist. choose default '9300'");
 		}
 

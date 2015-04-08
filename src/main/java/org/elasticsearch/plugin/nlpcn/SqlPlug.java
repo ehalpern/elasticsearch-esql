@@ -1,16 +1,21 @@
 package org.elasticsearch.plugin.nlpcn;
 
+import org.elasticsearch.common.logging.ESLogger;
+import org.elasticsearch.common.logging.ESLoggerFactory;
 import org.elasticsearch.plugins.AbstractPlugin;
 import org.elasticsearch.rest.RestModule;
+import org.elasticsearch.script.ScriptModule;
+import org.elasticsearch.search.aggregations.metrics.first.CombineScript;
+import org.elasticsearch.search.aggregations.metrics.first.MapScript;
+import org.elasticsearch.search.aggregations.metrics.first.ReduceScript;
 
-public class SqlPlug extends AbstractPlugin {
-
-	public SqlPlug() {
-	}
+public class SqlPlug extends AbstractPlugin
+{
+	private static ESLogger LOG = ESLoggerFactory.getLogger(SqlPlug.class.getName());
 
 	@Override
 	public String name() {
-		return "sql";
+		return "esql";
 	}
 
 	@Override
@@ -20,6 +25,17 @@ public class SqlPlug extends AbstractPlugin {
 
 	public void onModule(RestModule module)
 	{
+		LOG.info("Registering request handlers");
 		module.addRestAction(RestSqlAction.class);
 	}
-}
+
+	/**
+	 * Register native scripts used to choose a field value from the first document
+	 * encountered during an aggregation
+	 */
+	public void onModule(ScriptModule module) {
+		LOG.info("Registering native scripts");
+		module.registerScript("first_map",    MapScript.class);
+		module.registerScript("first_combine",CombineScript.class);
+		module.registerScript("first_reduce", ReduceScript.class);
+	}}

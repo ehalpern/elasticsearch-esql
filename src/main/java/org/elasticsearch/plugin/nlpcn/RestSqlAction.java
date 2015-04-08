@@ -23,10 +23,10 @@ public class RestSqlAction extends BaseRestHandler {
 	@Inject
 	public RestSqlAction(Settings settings, Client client, RestController restController) {
 		super(settings, restController, client);
-		restController.registerHandler(RestRequest.Method.POST, "/_sql/_explain", this);
-		restController.registerHandler(RestRequest.Method.GET, "/_sql/_explain", this);
-		restController.registerHandler(RestRequest.Method.POST, "/_sql", this);
-		restController.registerHandler(RestRequest.Method.GET, "/_sql", this);
+		restController.registerHandler(RestRequest.Method.POST, "/_esql/_explain", this);
+		restController.registerHandler(RestRequest.Method.GET, "/_esql/_explain", this);
+		restController.registerHandler(RestRequest.Method.POST, "/_esql", this);
+		restController.registerHandler(RestRequest.Method.GET, "/_esql", this);
 	}
 
 	@Override

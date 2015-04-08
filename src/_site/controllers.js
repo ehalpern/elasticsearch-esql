@@ -24,7 +24,7 @@ elasticsearchSqlApp.controller('MainController', function ($scope, $http, $sce) 
 
         var query = window.editor.getValue();
 
-		$http.post($scope.url + "_sql", query)
+		$http.post($scope.url + "_esql", query)
 		.success(function(data, status, headers, config) {
           var handler = ResultHandlerFactory.create(data);
           $scope.resultsColumns = handler.getHead();
@@ -57,7 +57,7 @@ elasticsearchSqlApp.controller('MainController', function ($scope, $http, $sce) 
 		saveUrl()
 
         var query = window.editor.getValue();
-		$http.post($scope.url + "_sql/_explain", query)
+		$http.post($scope.url + "_esql/_explain", query)
 		.success(function(data, status, headers, config) {
 					 $scope.resultExplan = true;
 				   window.explanResult.setValue(JSON.stringify(data, null, "\t"));

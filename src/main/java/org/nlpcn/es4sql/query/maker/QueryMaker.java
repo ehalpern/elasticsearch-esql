@@ -18,6 +18,7 @@ public class QueryMaker extends Maker {
 	 * @throws SqlParseException
 	 */
 	public static BoolQueryBuilder explan(Where where) throws SqlParseException {
+		//QueryBuilders.queryString();
 		BoolQueryBuilder boolQuery = QueryBuilders.boolQuery();
 		new QueryMaker().explanWhere(boolQuery, where);
 		return boolQuery;

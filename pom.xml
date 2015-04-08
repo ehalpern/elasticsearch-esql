@@ -1,13 +1,13 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>org.nlpcn</groupId>
-	<artifactId>elasticsearch-sql</artifactId>
-	<version>1.3.1</version>
+	<groupId>com.github.ehalpern</groupId>
+	<artifactId>elasticsearch-esql</artifactId>
+	<version>1.0-SNAPSHOT</version>
 	<packaging>jar</packaging>
 	<description>Query elasticsearch using SQL</description>
-	<name>elasticsearch-sql</name>
-	<url>https://github.com/NLPchina/elasticsearch-sql/</url>
+	<name>elasticsearch-esql</name>
+	<url>https://github.com/ehalpern/elasticsearch-sql/</url>
 	<licenses>
 		<license>
 			<name>The Apache Software License, Version 2.0</name>
@@ -18,15 +18,10 @@
 
 	<developers>
 		<developer>
-			<id>ansj</id>
-			<name>ansj</name>
-			<email>ansj-sun@163.com</email>
+			<id>ehalpern</id>
+			<name>Eric Halpern</name>
+			<email>eric.halpern@gmail.com</email>
 		</developer>
-        <developer>
-            <id>omershelef</id>
-            <name>Omer shelef</name>
-            <email>shlaflaf@gmail.com</email>
-        </developer>
 	</developers>
 
 	<distributionManagement>
@@ -44,9 +39,9 @@
 		</repository>
 	</repositories>
 
-
-
 	<properties>
+		<elasticsearch.version>1.4.1</elasticsearch.version>
+		<downloadSources>true</downloadSources>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <runSuite>**/MainTestSuite.class</runSuite>
 	</properties>
@@ -55,15 +50,15 @@
 		<dependency>
 			<groupId>org.elasticsearch</groupId>
 			<artifactId>elasticsearch</artifactId>
-			<version>1.4.1</version>
-			<scope>provided</scope>
+			<version>${elasticsearch.version}</version>
+			<scope>compile</scope>
 		</dependency>
 		
 		<dependency>
 			<groupId>log4j</groupId>
 			<artifactId>log4j</artifactId>
 			<version>1.2.16</version>
-			<scope>provided</scope>
+			<scope>compile</scope>
 		</dependency>
 
 		<dependency>
@@ -91,8 +86,13 @@
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
             <version>18.0</version>
-
         </dependency>
+
+		<dependency>
+			<groupId>com.github.jsqlparser</groupId>
+			<artifactId>jsqlparser</artifactId>
+			<version>0.9</version>
+		</dependency>
 	</dependencies>
 
 
@@ -122,25 +122,39 @@
 
 
 			<plugin>
-				<artifactId>maven-assembly-plugin</artifactId>
-				<version>2.4.1</version>
-				<configuration>
-					<appendAssemblyId>all</appendAssemblyId>
-					<descriptorRefs>
-						<descriptorRef>jar-with-dependencies</descriptorRef>
-					</descriptorRefs>
-				</configuration>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-source-plugin</artifactId>
+				<version>2.1.2</version>
+				<executions>
+					<execution>
+						<id>attach-sources</id>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+					</execution>
+				</executions>
 			</plugin>
 
 
-            <plugin>
-                <artifactId>maven-assembly-plugin</artifactId>
-                <version>2.4</version>
-                <configuration>
-                    <descriptor>src/assembly/zip.xml</descriptor>
-                </configuration>
-            </plugin>
-
+			<plugin>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<version>2.3</version>
+				<configuration>
+					<appendAssemblyId>false</appendAssemblyId>
+					<outputDirectory>${project.build.directory}/releases/</outputDirectory>
+					<descriptors>
+						<descriptor>${basedir}/src/assembly/plugin.xml</descriptor>
+					</descriptors>
+				</configuration>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
 
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -161,6 +175,13 @@
 				<version>1.0-beta-6</version>
 			</extension>
 		</extensions>
+
+		<resources>
+			<resource>
+				<directory>${project.basedir}/src/_site</directory>
+				<targetPath>${project.build.directory}/_site</targetPath>
+			</resource>
+		</resources>
 
 	</build>
 
