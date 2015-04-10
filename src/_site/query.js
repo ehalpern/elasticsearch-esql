@@ -97,11 +97,15 @@ var AggregationQueryResultHandler = function(data) {
         obj[bucketName] = bucket.key
       }
 
-      for(var field in bucket) {              
-        if(bucket[field].value != undefined) {
+      for (var field in bucket) {
+        if (field == "fields") {
+          var fields = bucket[field].value
+          for (var f in fields) {
+            obj[f] = fields[f]
+          }
+        } else if (bucket[field].value != undefined) {
           obj[field] = bucket[field].value
-        }
-        else {
+        } else {
           continue;
         }
       }

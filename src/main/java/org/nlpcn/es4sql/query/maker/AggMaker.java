@@ -17,6 +17,7 @@ import org.elasticsearch.search.aggregations.bucket.histogram.HistogramBuilder;
 import org.elasticsearch.search.aggregations.bucket.range.RangeBuilder;
 import org.elasticsearch.search.aggregations.bucket.range.date.DateRangeBuilder;
 import org.elasticsearch.search.aggregations.bucket.terms.TermsBuilder;
+import org.elasticsearch.search.aggregations.metrics.scripted.ScriptedMetricBuilder;
 import org.elasticsearch.search.aggregations.metrics.tophits.TopHitsBuilder;
 import org.elasticsearch.search.sort.SortOrder;
 import org.nlpcn.es4sql.Util;
@@ -75,6 +76,33 @@ public class AggMaker {
 		default:
 			throw new SqlParseException("the agg function not to define !");
 		}
+	}
+
+	/*
+	"scripted_metric": {
+            "lang": "native",
+            "reduce_script": "first_reduce",
+            "params": {
+              "fields": [
+                "city"
+              ]
+            },
+            "combine_script": "first_combine",
+            "map_script": "first_map"
+          }
+	 */
+
+	public AbstractAggregationBuilder makeFirstValueAgg(List<String> fields)
+		throws SqlParseException
+	{
+		Map<String, Object> params = new HashMap<>();
+		params.put("fields", fields);
+		return AggregationBuilders.scriptedMetric("fields")
+			       .lang("native")
+		         .params(params)
+			       .mapScript("first_map")
+			       .combineScript("first_combine")
+			       .reduceScript("first_reduce");
 	}
 
 	private ValuesSourceAggregationBuilder<?> makeRangeGroup(MethodField field) throws SqlParseException {

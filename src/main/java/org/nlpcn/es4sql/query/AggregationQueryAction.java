@@ -1,5 +1,6 @@
 package org.nlpcn.es4sql.query;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -105,7 +106,10 @@ public class AggregationQueryAction extends QueryAction {
 		return "ASC".equals(order.getType());
 	}
 
-	private void explanFields(SearchRequestBuilder request, List<Field> fields, AggregationBuilder<?> groupByAgg) throws SqlParseException {
+	private void explanFields(SearchRequestBuilder request, List<Field> fields, AggregationBuilder<?> groupByAgg)
+		throws SqlParseException
+	{
+		List<String> simpleFields = new ArrayList<>();
 		for (Field field : fields) {
 			if (field instanceof MethodField) {
 				AbstractAggregationBuilder makeAgg = aggMaker.makeFieldAgg((MethodField) field, groupByAgg);
@@ -116,9 +120,18 @@ public class AggregationQueryAction extends QueryAction {
 					request.addAggregation(makeAgg);
 				}
 			} else if (field instanceof Field) {
-				request.addField(field.getName());
+				simpleFields.add(field.getName());
 			} else {
 				throw new SqlParseException("it did not support this field method " + field);
+			}
+		}
+		if (simpleFields.size() > 0) {
+			AbstractAggregationBuilder firstValAgg = aggMaker.makeFirstValueAgg(simpleFields);
+			if (groupByAgg != null) {
+				groupByAgg.subAggregation(firstValAgg);
+			}
+			else {
+				request.addAggregation(firstValAgg);
 			}
 		}
 	}

@@ -23,6 +23,11 @@ public class From {
 		}
 	}
 
+	public From(String index, String type) {
+		this.index = index;
+		this.type = type;
+	}
+
 	public String getIndex() {
 		return index ;
 	}

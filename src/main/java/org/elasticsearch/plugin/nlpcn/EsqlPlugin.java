@@ -9,9 +9,9 @@ import org.elasticsearch.search.aggregations.metrics.first.CombineScript;
 import org.elasticsearch.search.aggregations.metrics.first.MapScript;
 import org.elasticsearch.search.aggregations.metrics.first.ReduceScript;
 
-public class SqlPlug extends AbstractPlugin
+public class EsqlPlugin extends AbstractPlugin
 {
-	private static ESLogger LOG = ESLoggerFactory.getLogger(SqlPlug.class.getName());
+	private static ESLogger LOG = ESLoggerFactory.getLogger(EsqlPlugin.class.getName());
 
 	@Override
 	public String name() {

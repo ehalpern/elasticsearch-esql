@@ -21,7 +21,7 @@ public class Condition extends Where {
 
 	private OPEAR opear;
 	
-	public Condition(CONN conn, String name, OPEAR oper, Object value) throws SqlParseException {
+	public Condition(CONN conn, String name, OPEAR oper, Object value) {
 		super(conn);
 		this.opear = null;
 
