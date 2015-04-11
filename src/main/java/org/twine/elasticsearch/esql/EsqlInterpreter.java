@@ -27,9 +27,10 @@ public class EsqlInterpreter
   }
 
   private static String fixEsqlWhere(String sql) {
+    String compressed = sql.replaceAll("\\s+", " ");
     String sqlPattern = "(SELECT .+ FROM .+ WHERE )(.+:((?!GROUP BY|ORDER BY|LIMIT).)+)((GROUP BY|ORDER BY|LIMIT).+)?";
     Pattern r = Pattern.compile(sqlPattern);
-    Matcher m = r.matcher(sql);
+    Matcher m = r.matcher(compressed);
     if (m.find()) {
       String where = String.format("q = query('%s')", m.group(2));
       String rest = m.group(4) == null ? "" : m.group(4);
