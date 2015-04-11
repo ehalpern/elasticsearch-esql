@@ -6,6 +6,6 @@ package org.twine.sql.builder;
  */
 public interface FromItemBuilder
 {
-  FromItemBuilder from(String index, String type, String alias);
+  FromItemBuilder from(String part0, String part1, String alias);
 }
 

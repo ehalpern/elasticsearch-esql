@@ -83,7 +83,9 @@ public class EsqlCommand
   }
 
   class FromItemBuilder implements org.twine.sql.builder.FromItemBuilder {
-    public FromItemBuilder from(String index, String type, String alias) {
+    public FromItemBuilder from(String part0, String part1, String alias) {
+      String index = part0 != null ? part0 : part1;
+      String type = part0 != null ? part1: null;
       command.getFrom().add(new From(index, type));
       return this;
     }
