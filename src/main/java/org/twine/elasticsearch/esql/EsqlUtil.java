@@ -8,7 +8,7 @@ import java.util.regex.Pattern;
  */
 public class EsqlUtil
 {
-  public static String transformEsqlWhere(String sql) {
+  public static String normalizeEsql(String sql) {
     String compressed = compressWhitespace(sql);
     String sqlPattern = "(SELECT .+ FROM .+ WHERE )(.+:((?!GROUP BY|ORDER BY|LIMIT).)+)((GROUP BY|ORDER BY|LIMIT).+)?";
     Pattern r = Pattern.compile(sqlPattern);
@@ -39,6 +39,6 @@ public class EsqlUtil
   }
 
   public static String compressWhitespace(String s) {
-    return s.replaceAll("\\s+", " ");
+    return s.trim().replaceAll("\\s+", " ");
   }
 }

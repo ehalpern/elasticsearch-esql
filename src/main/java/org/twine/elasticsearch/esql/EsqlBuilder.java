@@ -30,7 +30,7 @@ public class EsqlBuilder
   public static EsqlCommand parse(String esql) {
     try {
       Statement statement = CCJSqlParserUtil.parse(
-        EsqlUtil.transformEsqlWhere(esql)
+        EsqlUtil.normalizeEsql(esql)
       );
       EsqlBuilder builder = new EsqlBuilder(statement);
       return builder.complete();
