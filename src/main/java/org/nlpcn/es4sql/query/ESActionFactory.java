@@ -12,6 +12,7 @@ import org.nlpcn.es4sql.parse.SqlParser;
 import org.twine.elasticsearch.esql.EsqlCommand;
 import org.twine.elasticsearch.esql.EsqlInputException;
 import org.twine.elasticsearch.esql.EsqlInterpreter;
+import org.twine.elasticsearch.esql.EsqlUtil;
 
 import java.sql.SQLFeatureNotSupportedException;
 
@@ -25,6 +26,7 @@ public class ESActionFactory
 	 * @return Query object.
 	 */
 	public static QueryAction create(Client client, String sql) throws SqlParseException, SQLFeatureNotSupportedException {
+		sql = EsqlUtil.compressWhitespace(sql);
 		String firstWord = sql.substring(0, sql.indexOf(' '));
 		switch (firstWord.toUpperCase()) {
 			case "SELECT":
