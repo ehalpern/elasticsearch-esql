@@ -5,7 +5,6 @@ import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.ExpressionVisitorAdapter;
 import net.sf.jsqlparser.expression.Function;
 import net.sf.jsqlparser.schema.Column;
-import org.twine.sql.builder.SelectItemBuilder;
 
 import java.util.ArrayList;
 import java.util.List;
