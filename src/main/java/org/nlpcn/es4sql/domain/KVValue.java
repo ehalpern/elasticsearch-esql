@@ -1,10 +1,11 @@
 package org.nlpcn.es4sql.domain;
 
 public class KVValue implements Cloneable {
-	public String key;
-	public Object value;
+	public final String key;
+	public final Object value;
 
 	public KVValue(Object value) {
+		this.key = null;
 		this.value = value;
 	}
 

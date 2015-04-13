@@ -3,17 +3,16 @@ package org.twine.sql.processor;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.statement.Statement;
-import org.twine.sql.builder.StatementBuilder;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class SqlProcessor
 {
-	public static void process(String sql, StatementBuilder builder)
+	public static void process(String sql)
 		throws JSQLParserException {
 		Statement stmt = CCJSqlParserUtil.parse(sql);
-		stmt.accept(new StatementProcessor(builder));
+		stmt.accept(new StatementProcessor());
 	}
 
 	private static String fixEsqlWhere(String sql) {

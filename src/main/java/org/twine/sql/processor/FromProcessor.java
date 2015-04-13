@@ -3,19 +3,11 @@ package org.twine.sql.processor;
 
 import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.select.*;
-import org.twine.sql.builder.FromItemBuilder;
 
-public class FromItemProcessor implements FromItemVisitor
+public class FromProcessor implements FromItemVisitor
 {
-  private final FromItemBuilder builder;
-
-  /*package*/ FromItemProcessor(FromItemBuilder builder) {
-    this.builder = builder;
-  }
-
   public void visit(Table table) {
-    String alias = table.getAlias() != null ? table.getAlias().getName() : null;
-    builder.from(table.getSchemaName(), table.getName(), alias);
+    throw new UnsupportedOperationException();
   }
 
   public void visit(SubSelect subSelect) {

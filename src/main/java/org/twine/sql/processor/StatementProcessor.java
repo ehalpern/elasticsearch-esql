@@ -11,20 +11,18 @@ import net.sf.jsqlparser.statement.drop.Drop;
 import net.sf.jsqlparser.statement.insert.Insert;
 import net.sf.jsqlparser.statement.replace.Replace;
 import net.sf.jsqlparser.statement.select.Select;
+import net.sf.jsqlparser.statement.select.SelectVisitor;
 import net.sf.jsqlparser.statement.truncate.Truncate;
 import net.sf.jsqlparser.statement.update.Update;
-import org.twine.sql.builder.StatementBuilder;
 
 public class StatementProcessor implements StatementVisitor
 {
-	private final StatementBuilder builder;
-
-	public StatementProcessor(StatementBuilder builder) {
-		this.builder = builder;
+	protected SelectVisitor select() {
+		return new SelectStatementProcessor();
 	}
 
 	public void visit(Select select) {
-		select.getSelectBody().accept(new SelectProcessor(builder.select()));
+		select.getSelectBody().accept(select());
 	}
 
 	public void visit(Delete delete) {
