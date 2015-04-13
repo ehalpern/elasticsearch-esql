@@ -11,7 +11,7 @@ public class EsqlUtil
   public static String normalizeEsql(String sql) {
     String compressed = compressWhitespace(sql);
     String sqlPattern = "(SELECT .+ FROM .+ WHERE )(.+:((?!GROUP BY|ORDER BY|LIMIT).)+)((GROUP BY|ORDER BY|LIMIT).+)?";
-    Pattern r = Pattern.compile(sqlPattern);
+    Pattern r = Pattern.compile(sqlPattern, Pattern.CASE_INSENSITIVE);
     Matcher m = r.matcher(compressed);
     if (m.find()) {
       String quotedQueryString = EsqlUtil.toSqlString(m.group(2));
