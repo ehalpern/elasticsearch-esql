@@ -30,7 +30,7 @@ public class EsqlBuilder
   public static EsqlCommand parse(String esql) {
     try {
       Statement statement = CCJSqlParserUtil.parse(
-        EsQueryUtil.transformEsqlWhere(esql)
+        EsqlUtil.transformEsqlWhere(esql)
       );
       EsqlBuilder builder = new EsqlBuilder(statement);
       return builder.complete();
@@ -142,7 +142,7 @@ public class EsqlBuilder
         if (params.size() != 1) {
           throw new EsqlInputException("query function must have one parameter");
         } else {
-          addToQuery(EsQueryUtil.fromSqlString(params.get(0).toString()));
+          addToQuery(EsqlUtil.fromSqlString(params.get(0).toString()));
         }
       }
     }

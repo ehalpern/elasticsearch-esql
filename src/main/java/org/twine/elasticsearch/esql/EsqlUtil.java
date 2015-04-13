@@ -6,15 +6,15 @@ import java.util.regex.Pattern;
 /**
  * Created by eric on 4/12/15.
  */
-public class EsQueryUtil
+public class EsqlUtil
 {
   public static String transformEsqlWhere(String sql) {
-    String compressed = sql.replaceAll("\\s+", " ");
+    String compressed = compressWhitespace(sql);
     String sqlPattern = "(SELECT .+ FROM .+ WHERE )(.+:((?!GROUP BY|ORDER BY|LIMIT).)+)((GROUP BY|ORDER BY|LIMIT).+)?";
     Pattern r = Pattern.compile(sqlPattern);
     Matcher m = r.matcher(compressed);
     if (m.find()) {
-      String quotedQueryString = EsQueryUtil.toSqlString(m.group(2));
+      String quotedQueryString = EsqlUtil.toSqlString(m.group(2));
       String where = String.format("_q = query(%s)", quotedQueryString);
       String rest = m.group(4) == null ? "" : m.group(4);
       String newSql = String.format("%s%s %s", m.group(1), where, rest);
@@ -36,5 +36,9 @@ public class EsQueryUtil
     String noQuotes = sqlString.replaceAll("^\\s*'(.+)'\\s*$", "$1");
     String esQueryString = noQuotes.replaceAll("\\\\(['\"])", "$1");
     return esQueryString;
+  }
+
+  public static String compressWhitespace(String s) {
+    return s.replaceAll("\\s+", " ");
   }
 }
