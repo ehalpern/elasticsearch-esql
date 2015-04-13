@@ -252,7 +252,9 @@ public class EsqlBuilder
       addToQuery(value.toString());
     }
     public void visit(TimestampValue value) { addToQuery(value.toString()); }
-    public void visit(StringValue value) { addToQuery(value.toString()); }
+    public void visit(StringValue value) {
+      addToQuery(EsqlUtil.toQueryString(value.toString()));
+    }
   }
 
   class GroupByBuilder extends GroupByProcessor

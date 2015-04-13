@@ -41,4 +41,15 @@ public class EsqlUtil
   public static String compressWhitespace(String s) {
     return s.trim().replaceAll("\\s+", " ");
   }
+
+  public static String stripQuotes(String s) {
+    return s.trim().replaceAll("^['\"](.+)['\"]$", "$1");
+  }
+
+  /**
+   * Strip quotes and prepend every term with +
+   */
+  public static String toQueryString(String s) {
+    return "+" + compressWhitespace(stripQuotes(s)).replaceAll(" (\\S+)", " +$1");
+  }
 }
