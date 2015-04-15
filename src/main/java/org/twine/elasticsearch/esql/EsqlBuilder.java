@@ -99,7 +99,8 @@ public class EsqlBuilder
       for (Expression e: function.getParameters().getExpressions()) {
         params.add(new KVValue(e.toString()));
       }
-      command.addField(new MethodField(function.getName(), params, null, alias));
+      String option = function.isDistinct() ? "DISTNCT" : null;
+      command.addField(new MethodField(function.getName(), params, option, alias));
     }
 
     @Override

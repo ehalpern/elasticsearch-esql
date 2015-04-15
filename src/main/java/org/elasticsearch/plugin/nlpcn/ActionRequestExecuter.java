@@ -16,10 +16,12 @@ import org.elasticsearch.search.aggregations.Aggregation;
 import org.elasticsearch.search.aggregations.Aggregations;
 import org.elasticsearch.search.aggregations.bucket.MultiBucketsAggregation;
 import org.elasticsearch.search.aggregations.metrics.avg.Avg;
+import org.elasticsearch.search.aggregations.metrics.cardinality.Cardinality;
 import org.elasticsearch.search.aggregations.metrics.max.Max;
 import org.elasticsearch.search.aggregations.metrics.min.Min;
 import org.elasticsearch.search.aggregations.metrics.scripted.ScriptedMetric;
 import org.elasticsearch.search.aggregations.metrics.sum.Sum;
+import org.elasticsearch.search.aggregations.metrics.valuecount.ValueCount;
 
 import java.io.IOException;
 import java.util.AbstractMap.SimpleEntry;
@@ -181,6 +183,10 @@ public class ActionRequestExecuter
 				return new SimpleEntry(agg.getName(), ((Max)agg).getValue());
 			} else if (agg instanceof Avg) {
 				return new SimpleEntry(agg.getName(), ((Avg)agg).getValue());
+			} else if (agg instanceof ValueCount) {
+				return new SimpleEntry(agg.getName(), ((ValueCount)agg).getValue());
+			} else if (agg instanceof Cardinality) {
+				return new SimpleEntry(agg.getName(), ((Cardinality)agg).getValue());
 			} else {
 				throw new UnsupportedOperationException("unexpected aggregation type " + agg.getClass().getName());
 			}

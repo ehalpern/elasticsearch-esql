@@ -68,13 +68,12 @@ public class Select extends Query {
 		this.orderBys.add(new Order(name, type));
 	}
 
-
 	public void addField(Field field) {
 		if (field == null) {
 			return;
 		}
 
-		if(field instanceof  MethodField && aggsFunctions.contains(field.getName())) {
+		if(field instanceof  MethodField && aggsFunctions.contains(field.getName().toUpperCase())) {
 			isAgg = true;
 		}
 
