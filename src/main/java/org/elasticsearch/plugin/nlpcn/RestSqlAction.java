@@ -17,6 +17,7 @@ import org.nlpcn.es4sql.SearchDao;
 import org.nlpcn.es4sql.query.explain.ExplainManager;
 
 import java.io.FileOutputStream;
+import java.util.List;
 
 public class RestSqlAction extends BaseRestHandler {
 
@@ -41,6 +42,7 @@ public class RestSqlAction extends BaseRestHandler {
 		SearchDao searchDao = new SearchDao(client);
 		ActionRequestBuilder actionRequestBuilder = searchDao.explain(sql);
 		ActionRequest actionRequest = actionRequestBuilder.request();
+		List<String> columns = searchDao.getColumns();
 
 		// TODO add unittests to explain. (rest level?)
 		if (request.path().endsWith("/_explain")) {
@@ -48,7 +50,7 @@ public class RestSqlAction extends BaseRestHandler {
 			BytesRestResponse bytesRestResponse = new BytesRestResponse(RestStatus.OK, jsonExplanation);
 			channel.sendResponse(bytesRestResponse);
 		} else {
-			new ActionRequestExecuter(actionRequest, channel, client).execute();
+			new ActionRequestExecuter(actionRequest, channel, client, searchDao.getColumns()).execute();
 		}
 	}
 }

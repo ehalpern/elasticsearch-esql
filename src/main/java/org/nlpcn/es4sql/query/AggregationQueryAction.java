@@ -26,8 +26,8 @@ import org.nlpcn.es4sql.query.maker.FilterMaker;
 /**
  * Transform SQL query to Elasticsearch aggregations query
  */
-public class AggregationQueryAction extends QueryAction {
-
+public class AggregationQueryAction extends QueryAction
+{
 	private final Select select;
 	private AggMaker aggMaker = new AggMaker();
 	private SearchRequestBuilder request;
