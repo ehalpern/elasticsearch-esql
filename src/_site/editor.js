@@ -7,6 +7,7 @@ window.onload = function() {
     lineNumbers: true,
     matchBrackets : true,
     autofocus: true,
+    persist: true,
     extraKeys: {
       "Ctrl-Space": "autocomplete",
       "Ctrl-Enter": angular.element($("#queryTextarea")).scope().search

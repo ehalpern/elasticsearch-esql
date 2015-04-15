@@ -22,7 +22,7 @@ elasticsearchSqlApp.controller('MainController', function ($scope, $http, $sce) 
 
 		saveUrl()
 
-        var query = window.editor.getValue();
+		var query = window.editor.getValue();
 
 		$http.post($scope.url + "_esql", query)
 		.success(function(data, status, headers, config) {
@@ -120,7 +120,7 @@ elasticsearchSqlApp.controller('MainController', function ($scope, $http, $sce) 
 
 	function getUrl() {
 		var url = localStorage.getItem("lasturl");
-		if(url == undefined) {
+		if (url == undefined) {
 			if(location.protocol == "file") {
 				url = "http://localhost:9200"
 			}
