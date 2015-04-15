@@ -10,7 +10,6 @@ import org.elasticsearch.rest.BytesRestResponse;
 import org.elasticsearch.rest.RestChannel;
 import org.elasticsearch.rest.RestResponse;
 import org.elasticsearch.rest.action.support.RestBuilderListener;
-import org.elasticsearch.rest.action.support.RestStatusToXContentListener;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.aggregations.Aggregation;
@@ -96,7 +95,7 @@ public class ActionRequestExecuter
 				b.startArray("rows");
 				try {
 					for (SearchHit hit : hits.hits()) {
-						buildInOrder(hit.getSource(), columns, b);
+						buildWithFilter(hit.getSource(), columns, b);
 					}
 				} finally {
 					b.endArray();
@@ -120,7 +119,7 @@ public class ActionRequestExecuter
 							MultiBucketsAggregation mba = (MultiBucketsAggregation) agg;
 							transformBuckets(e.getKey(), mba, b);
 						} else {
-							buildInOrder(getColumnsFromAggregations(aggs), columns, b);
+							buildWithFilter(getColumnsFromAggregations(aggs), columns, b);
 						}
 					}
 				} finally {
@@ -137,21 +136,26 @@ public class ActionRequestExecuter
 			for (MultiBucketsAggregation.Bucket bucket: agg.getBuckets()) {
 				Map<String, Object> colMap = getColumnsFromAggregations(bucket.getAggregations());
 				colMap.put(agg.getName(), bucket.getKey());
-				buildInOrder(colMap, columns, b);
+				buildWithFilter(colMap, columns, b);
 			}
 			return b;
 		}
 
-		private XContentBuilder buildInOrder(Map<String, Object> map, List<String> order, XContentBuilder builder)
+		private XContentBuilder buildWithFilter(Map<String, Object> map, List<String> filter, XContentBuilder builder)
 			throws IOException
 		{
-			builder.startObject();
-			for (String key: order) {
-				if (map.containsKey(key)) {
-					builder.field(key, map.get(key));
+			if (filter.isEmpty()) {
+				builder.map(map);
+			} else {
+				builder.startObject();
+				for (String key : filter) {
+					if (map.containsKey(key)) {
+						builder.field(key, map.get(key));
+					}
 				}
+				builder.endObject();
 			}
-			return builder.endObject();
+			return builder;
 		}
 
 		private Map<String, Object> getColumnsFromAggregations(Aggregations aggs) {
