@@ -1,4 +1,4 @@
-package org.twine.elasticsearch.esql;
+package org.twine.esql;
 
 /**
  * Created by eric on 4/9/15.

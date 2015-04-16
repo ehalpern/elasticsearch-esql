@@ -5,4 +5,4 @@
  * @author ansj
  *
  */
-package org.elasticsearch.plugin.nlpcn;
+package org.twine.elasticsearch.plugin;

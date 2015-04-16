@@ -19,7 +19,7 @@ import org.nlpcn.es4sql.domain.MethodField;
 import org.nlpcn.es4sql.domain.Order;
 import org.nlpcn.es4sql.domain.Select;
 import org.nlpcn.es4sql.domain.Where;
-import org.nlpcn.es4sql.exception.SqlParseException;
+import java.sql.SQLSyntaxErrorException;
 import org.nlpcn.es4sql.query.maker.AggMaker;
 import org.nlpcn.es4sql.query.maker.FilterMaker;
 
@@ -38,7 +38,9 @@ public class AggregationQueryAction extends QueryAction
 	}
 
 	@Override
-	public SearchRequestBuilder explain() throws SqlParseException {
+	public SearchRequestBuilder explain()
+		throws SQLSyntaxErrorException
+	{
 		this.request = client.prepareSearch();
 		request.setListenerThreaded(false);
 		setIndicesAndTypes();
@@ -93,7 +95,7 @@ public class AggregationQueryAction extends QueryAction
 					termsBuilder.order(Terms.Order.aggregation(order.getName(), isASC(order)));
 					break;
 				default:
-					throw new SqlParseException(order.getName() + " can not to order");
+					throw new SQLSyntaxErrorException(order.getName() + " can not to order");
 				}
 			}
 		}
@@ -107,7 +109,7 @@ public class AggregationQueryAction extends QueryAction
 	}
 
 	private void explanFields(SearchRequestBuilder request, List<Field> fields, AggregationBuilder<?> groupByAgg)
-		throws SqlParseException
+		throws SQLSyntaxErrorException
 	{
 		List<String> simpleFields = new ArrayList<>();
 		for (Field field : fields) {
@@ -122,7 +124,7 @@ public class AggregationQueryAction extends QueryAction
 			} else if (field instanceof Field) {
 				simpleFields.add(field.getName());
 			} else {
-				throw new SqlParseException("it did not support this field method " + field);
+				throw new SQLSyntaxErrorException("it did not support this field method " + field);
 			}
 		}
 		if (simpleFields.size() > 0) {
@@ -140,9 +142,9 @@ public class AggregationQueryAction extends QueryAction
 	 * Create filters based on
 	 * the Where clause.
 	 * @param where the 'WHERE' part of the SQL query.
-	 * @throws SqlParseException
+	 * @throws SQLSyntaxErrorException
 	 */
-	private void setWhere(Where where) throws SqlParseException {
+	private void setWhere(Where where) throws SQLSyntaxErrorException {
 		if (where != null) {
 			BoolFilterBuilder boolFilter = FilterMaker.explan(where);
 			request.setQuery(QueryBuilders.filteredQuery(null, boolFilter));

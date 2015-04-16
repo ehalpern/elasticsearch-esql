@@ -8,7 +8,7 @@ import org.elasticsearch.index.query.*;
 import org.nlpcn.es4sql.domain.Condition;
 import org.nlpcn.es4sql.domain.Condition.OPEAR;
 import org.nlpcn.es4sql.domain.Paramer;
-import org.nlpcn.es4sql.exception.SqlParseException;
+import java.sql.SQLSyntaxErrorException;
 
 import org.durid.sql.ast.expr.SQLIdentifierExpr;
 import org.durid.sql.ast.expr.SQLMethodInvokeExpr;
@@ -30,9 +30,9 @@ public abstract class Maker {
 	 * @param expr
 	 * @param expr
 	 * @return
-	 * @throws SqlParseException
+	 * @throws SQLSyntaxErrorException
 	 */
-	protected ToXContent make(Condition cond) throws SqlParseException {
+	protected ToXContent make(Condition cond) throws SQLSyntaxErrorException {
 
 		String name = cond.getName();
 		Object value = cond.getValue();
@@ -47,7 +47,7 @@ public abstract class Maker {
 		return x;
 	}
 
-	private ToXContent make(Condition cond, String name, SQLMethodInvokeExpr value) throws SqlParseException {
+	private ToXContent make(Condition cond, String name, SQLMethodInvokeExpr value) throws SQLSyntaxErrorException {
 		ToXContent bqb = null;
 		Paramer paramer = null;
 		switch (value.getMethodName().toLowerCase()) {
@@ -103,14 +103,14 @@ public abstract class Maker {
 			}
 			break;
 		default:
-			throw new SqlParseException("it did not support this query method " + value.getMethodName());
+			throw new SQLSyntaxErrorException("it did not support this query method " + value.getMethodName());
 
 		}
 
 		return bqb;
 	}
 
-	private ToXContent make(Condition cond, String name, Object value) throws SqlParseException {
+	private ToXContent make(Condition cond, String name, Object value) throws SQLSyntaxErrorException {
 		ToXContent x = null;
 		switch (cond.getOpear()) {
 		case ISN:
@@ -126,7 +126,7 @@ public abstract class Maker {
 					}
 				}
 				else {
-					throw new SqlParseException(String.format("Cannot recoginze Sql identifer %s", identifier.getName()));
+					throw new SQLSyntaxErrorException(String.format("Cannot recoginze Sql identifer %s", identifier.getName()));
 				}
 				break;
 			} else {
@@ -199,7 +199,7 @@ public abstract class Maker {
 				x = FilterBuilders.rangeFilter(name).gte(((Object[]) value)[0]).lte(((Object[]) value)[1]);
 			break;
 		default:
-			throw new SqlParseException("not define type " + cond.getName());
+			throw new SQLSyntaxErrorException("not define type " + cond.getName());
 		}
 
 		x = fixNot(cond, x);

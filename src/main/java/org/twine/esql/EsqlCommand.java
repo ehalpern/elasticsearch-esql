@@ -1,4 +1,4 @@
-package org.twine.elasticsearch.esql;
+package org.twine.esql;
 
 import org.durid.sql.ast.expr.SQLCharExpr;
 import org.durid.sql.ast.expr.SQLMethodInvokeExpr;

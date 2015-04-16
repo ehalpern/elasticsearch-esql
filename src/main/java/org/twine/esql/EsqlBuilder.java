@@ -1,4 +1,4 @@
-package org.twine.elasticsearch.esql;
+package org.twine.esql;
 
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.*;

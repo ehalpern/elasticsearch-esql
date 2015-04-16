@@ -24,7 +24,7 @@ import org.nlpcn.es4sql.Util;
 import org.nlpcn.es4sql.domain.Field;
 import org.nlpcn.es4sql.domain.KVValue;
 import org.nlpcn.es4sql.domain.MethodField;
-import org.nlpcn.es4sql.exception.SqlParseException;
+import java.sql.SQLSyntaxErrorException;
 
 public class AggMaker {
 
@@ -35,9 +35,9 @@ public class AggMaker {
 	 * 
 	 * @param field
 	 * @return
-	 * @throws SqlParseException
+	 * @throws SQLSyntaxErrorException
 	 */
-	public AggregationBuilder<?> makeGroupAgg(Field field) throws SqlParseException {
+	public AggregationBuilder<?> makeGroupAgg(Field field) throws SQLSyntaxErrorException {
 		if (field instanceof MethodField) {
 			return makeRangeGroup((MethodField) field);
 		} else {
@@ -53,9 +53,9 @@ public class AggMaker {
 	 * @param field SQL function
 	 * @param parent parentAggregation
 	 * @return AggregationBuilder represents the SQL function
-	 * @throws SqlParseException in case of unrecognized function
+	 * @throws SQLSyntaxErrorException in case of unrecognized function
 	 */
-	public AbstractAggregationBuilder makeFieldAgg(MethodField field, AbstractAggregationBuilder parent) throws SqlParseException {
+	public AbstractAggregationBuilder makeFieldAgg(MethodField field, AbstractAggregationBuilder parent) throws SQLSyntaxErrorException {
 		groupMap.put(field.getAlias(), new KVValue("FIELD", parent));
 		switch (field.getName().toUpperCase()) {
 		case "SUM":
@@ -74,7 +74,7 @@ public class AggMaker {
 			groupMap.put(field.getAlias(), new KVValue("COUNT", parent));
 			return makeCountAgg(field);
 		default:
-			throw new SqlParseException("the agg function not to define !");
+			throw new SQLSyntaxErrorException("the agg function not to define !");
 		}
 	}
 
@@ -93,7 +93,7 @@ public class AggMaker {
 	 */
 
 	public AbstractAggregationBuilder makeFirstValueAgg(List<String> fields)
-		throws SqlParseException
+		throws SQLSyntaxErrorException
 	{
 		Map<String, Object> params = new HashMap<>();
 		params.put("fields", fields);
@@ -105,7 +105,7 @@ public class AggMaker {
 			       .reduceScript("first_reduce");
 	}
 
-	private ValuesSourceAggregationBuilder<?> makeRangeGroup(MethodField field) throws SqlParseException {
+	private ValuesSourceAggregationBuilder<?> makeRangeGroup(MethodField field) throws SQLSyntaxErrorException {
 		switch (field.getName().toLowerCase()) {
 		case "range":
 			return rangeBuilder(field);
@@ -118,7 +118,7 @@ public class AggMaker {
 		case "histogram":
 			return histogram(field);
 		default:
-			throw new SqlParseException("can define this method " + field);
+			throw new SQLSyntaxErrorException("can define this method " + field);
 		}
 
 	}
@@ -161,9 +161,9 @@ public class AggMaker {
 	 * 
 	 * @param field
 	 * @return
-	 * @throws SqlParseException
+	 * @throws SQLSyntaxErrorException
 	 */
-	private DateHistogramBuilder dateHistogram(MethodField field) throws SqlParseException {
+	private DateHistogramBuilder dateHistogram(MethodField field) throws SQLSyntaxErrorException {
 		DateHistogramBuilder dateHistogram = AggregationBuilders.dateHistogram(field.getAlias()).format(TIME_FARMAT);
 		String value = null;
 		for (KVValue kv : field.getParams()) {
@@ -192,13 +192,13 @@ public class AggMaker {
 				dateHistogram.preOffset(value);
 				break;
 			default:
-				throw new SqlParseException("date range err or not define field " + kv.toString());
+				throw new SQLSyntaxErrorException("date range err or not define field " + kv.toString());
 			}
 		}
 		return dateHistogram;
 	}
 
-	private HistogramBuilder histogram(MethodField field) throws SqlParseException {
+	private HistogramBuilder histogram(MethodField field) throws SQLSyntaxErrorException {
 		HistogramBuilder histogram = AggregationBuilders.histogram(field.getAlias());
 		String value = null;
 		for (KVValue kv : field.getParams()) {
@@ -238,7 +238,7 @@ public class AggMaker {
 					histogram.order(order);
 					break;
 				default:
-					throw new SqlParseException("histogram err or not define field " + kv.toString());
+					throw new SQLSyntaxErrorException("histogram err or not define field " + kv.toString());
 			}
 		}
 		return histogram;

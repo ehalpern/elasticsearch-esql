@@ -1,6 +1,4 @@
-package org.twine.elasticsearch.esql;
-
-import org.nlpcn.es4sql.domain.Select;
+package org.twine.esql;
 
 /**
  * Created by eric on 4/8/15.

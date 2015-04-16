@@ -1,17 +1,12 @@
 package org.nlpcn.es4sql;
 
+import org.durid.sql.ast.SQLExpr;
+import org.durid.sql.ast.expr.*;
+import java.sql.SQLSyntaxErrorException;
+import org.nlpcn.es4sql.domain.KVValue;
+
 import java.util.List;
 import java.util.Map;
-
-import org.nlpcn.es4sql.domain.KVValue;
-import org.nlpcn.es4sql.exception.SqlParseException;
-
-import org.durid.sql.ast.SQLExpr;
-import org.durid.sql.ast.expr.SQLAllColumnExpr;
-import org.durid.sql.ast.expr.SQLCharExpr;
-import org.durid.sql.ast.expr.SQLIdentifierExpr;
-import org.durid.sql.ast.expr.SQLNumericLiteralExpr;
-import org.durid.sql.ast.expr.SQLPropertyExpr;
 
 public class Util {
 	public static String joiner(List<KVValue> lists, String oper) {
@@ -34,7 +29,7 @@ public class Util {
 		return lists;
 	}
 
-	public static Object expr2Object(SQLExpr expr) throws SqlParseException {
+	public static Object expr2Object(SQLExpr expr) throws SQLSyntaxErrorException {
 		Object value = null;
 		if (expr instanceof SQLNumericLiteralExpr) {
 			value = ((SQLNumericLiteralExpr) expr).getNumber();
@@ -47,7 +42,7 @@ public class Util {
 		}else if (expr instanceof SQLAllColumnExpr) {
 			value = "*";
 		} else {
-			throw new SqlParseException("can not support this type " + expr.getClass());
+			throw new SQLSyntaxErrorException("can not support this type " + expr.getClass());
 		}
 		return value;
 	}

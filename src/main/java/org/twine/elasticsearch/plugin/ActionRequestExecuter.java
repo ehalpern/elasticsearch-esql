@@ -1,7 +1,6 @@
-package org.elasticsearch.plugin.nlpcn;
+package org.twine.elasticsearch.plugin;
 
 import org.elasticsearch.action.ActionRequest;
-import org.elasticsearch.action.deletebyquery.DeleteByQueryRequest;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.Client;
@@ -50,16 +49,14 @@ public class ActionRequestExecuter
 	/**
 	 * Execute the ActionRequest and returns the REST response using the channel.
 	 */
-	public void execute() throws Exception {
+	public void execute() {
 		request.listenerThreaded(false);
 
 		if (request instanceof SearchRequest) {
 			//client.search((SearchRequest) request, new RestStatusToXContentListener<SearchResponse>(channel));
 			client.search((SearchRequest) request, new EsqlResponseTransformer(channel, columns));
-		} else if (request instanceof DeleteByQueryRequest) {
-			client.deleteByQuery((DeleteByQueryRequest) request, new DeleteByQueryRestListener(channel));
 		} else {
-			throw new Exception(String.format("Unsupported ActionRequest provided: %s", request.getClass().getName()));
+			throw new AssertionError(String.format("Unsupported ActionRequest provided: %s", request.getClass().getName()));
 		}
 	}
 
@@ -73,7 +70,7 @@ public class ActionRequestExecuter
 		}
 
 		public RestResponse buildResponse(SearchResponse searchResponse, XContentBuilder builder)
-			throws Exception
+			throws IOException
 		{
 			XContentBuilder b = builder.startObject();
 			b.field("took", searchResponse.getTook());
@@ -91,7 +88,8 @@ public class ActionRequestExecuter
 		}
 
 		private XContentBuilder transformHits(SearchHits hits, XContentBuilder builder)
-			throws IOException {
+			throws IOException
+		{
 			XContentBuilder b = builder;
 			if (hits != null && hits.totalHits() > 0) {
 				b.startArray("rows");

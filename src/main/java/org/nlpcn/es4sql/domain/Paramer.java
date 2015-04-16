@@ -6,7 +6,7 @@ import org.elasticsearch.common.xcontent.ToXContent;
 import org.elasticsearch.index.query.MatchQueryBuilder;
 import org.elasticsearch.index.query.QueryStringQueryBuilder;
 import org.elasticsearch.index.query.WildcardQueryBuilder;
-import org.nlpcn.es4sql.exception.SqlParseException;
+import java.sql.SQLSyntaxErrorException;
 
 import org.durid.sql.ast.SQLExpr;
 import org.durid.sql.ast.expr.SQLCharExpr;
@@ -18,7 +18,7 @@ public class Paramer {
 	public Float boost;
 	public String value;
 
-	public static Paramer parseParamer(SQLMethodInvokeExpr method) throws SqlParseException {
+	public static Paramer parseParamer(SQLMethodInvokeExpr method) throws SQLSyntaxErrorException {
 		Paramer instance = new Paramer();
 		List<SQLExpr> parameters = method.getParameters();
 		instance.value = ((SQLCharExpr) parameters.get(0)).getText();

@@ -6,7 +6,7 @@ import org.elasticsearch.index.query.FilterBuilders;
 import org.nlpcn.es4sql.domain.Condition;
 import org.nlpcn.es4sql.domain.Where;
 import org.nlpcn.es4sql.domain.Where.CONN;
-import org.nlpcn.es4sql.exception.SqlParseException;
+import java.sql.SQLSyntaxErrorException;
 
 public class FilterMaker extends Maker {
 
@@ -15,9 +15,9 @@ public class FilterMaker extends Maker {
 	 * 
 	 * @param where
 	 * @return
-	 * @throws SqlParseException
+	 * @throws SQLSyntaxErrorException
 	 */
-	public static BoolFilterBuilder explan(Where where) throws SqlParseException {
+	public static BoolFilterBuilder explan(Where where) throws SQLSyntaxErrorException {
 		BoolFilterBuilder boolFilter = FilterBuilders.boolFilter();
 		new FilterMaker().explanWhere(boolFilter, where);
 		return boolFilter;
@@ -27,7 +27,7 @@ public class FilterMaker extends Maker {
 		super(false);
 	}
 
-	private void explanWhere(BoolFilterBuilder boolFilter, Where where) throws SqlParseException {
+	private void explanWhere(BoolFilterBuilder boolFilter, Where where) throws SQLSyntaxErrorException {
 		while (where.getWheres().size() == 1) {
 			where = where.getWheres().getFirst();
 		}

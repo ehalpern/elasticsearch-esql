@@ -1,4 +1,4 @@
-package org.twine.elasticsearch.esql;
+package org.twine.esql;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;

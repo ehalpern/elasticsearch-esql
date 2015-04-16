@@ -19,18 +19,13 @@ import java.sql.SQLFeatureNotSupportedException;
  */
 public class ExplainManager {
 
-	public static String explain(ActionRequestBuilder actionRequest) throws IOException, NoSuchMethodException, InvocationTargetException, IllegalAccessException, SQLFeatureNotSupportedException {
+	public static String explain(ActionRequestBuilder actionRequest)
+		throws IOException, SQLFeatureNotSupportedException
+	{
 		XContentBuilder builder = XContentFactory.contentBuilder(XContentType.JSON).prettyPrint();
 
 		if (actionRequest instanceof SearchRequestBuilder) {
 			((SearchRequestBuilder) actionRequest).internalBuilder().toXContent(builder, ToXContent.EMPTY_PARAMS);
-		} else if (actionRequest instanceof DeleteByQueryRequestBuilder) {
-			// access private method to get the explain...
-			DeleteByQueryRequestBuilder deleteRequest = ((DeleteByQueryRequestBuilder) actionRequest);
-			Method method = deleteRequest.getClass().getDeclaredMethod("sourceBuilder");
-			method.setAccessible(true);
-			QuerySourceBuilder sourceBuilder = (QuerySourceBuilder) method.invoke(deleteRequest);
-			sourceBuilder.toXContent(builder, ToXContent.EMPTY_PARAMS);
 		} else {
 			throw new SQLFeatureNotSupportedException(String.format("Failed to explain class %s", actionRequest.getClass().getName()));
 		}

@@ -2,7 +2,7 @@ package org.nlpcn.es4sql.domain;
 
 import java.util.Arrays;
 
-import org.nlpcn.es4sql.exception.SqlParseException;
+import java.sql.SQLSyntaxErrorException;
 
 /**
  * 过滤条件
@@ -32,7 +32,7 @@ public class Condition extends Where {
 		this.opear = oper ;
 	}
 
-	public Condition(CONN conn, String name, String oper, Object value) throws SqlParseException {
+	public Condition(CONN conn, String name, String oper, Object value) throws SQLSyntaxErrorException {
 		super(conn);
 
 		this.opear = null;
@@ -89,7 +89,7 @@ public class Condition extends Where {
 			this.opear = OPEAR.NBETWEEN;
 			break;
 		default:
-			throw new SqlParseException(oper + " is err!");
+			throw new SQLSyntaxErrorException(oper + " is err!");
 		}
 	}
 

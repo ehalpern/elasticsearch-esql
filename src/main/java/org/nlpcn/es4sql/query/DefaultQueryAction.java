@@ -13,7 +13,7 @@ import org.nlpcn.es4sql.domain.Field;
 import org.nlpcn.es4sql.domain.Order;
 import org.nlpcn.es4sql.domain.Select;
 import org.nlpcn.es4sql.domain.Where;
-import org.nlpcn.es4sql.exception.SqlParseException;
+import java.sql.SQLSyntaxErrorException;
 import org.nlpcn.es4sql.query.maker.FilterMaker;
 import org.nlpcn.es4sql.query.maker.QueryMaker;
 
@@ -31,7 +31,7 @@ public class DefaultQueryAction extends QueryAction {
 	}
 
 	@Override
-	public SearchRequestBuilder explain() throws SqlParseException {
+	public SearchRequestBuilder explain() throws SQLSyntaxErrorException {
 		this.request = client.prepareSearch();
 		request.setListenerThreaded(false);
 		setIndicesAndTypes();
@@ -83,9 +83,9 @@ public class DefaultQueryAction extends QueryAction {
 	 * Create filters or queries based on
 	 * the Where clause.
 	 * @param where the 'WHERE' part of the SQL query.
-	 * @throws SqlParseException
+	 * @throws SQLSyntaxErrorException
 	 */
-	private void setWhere(Where where) throws SqlParseException {
+	private void setWhere(Where where) throws SQLSyntaxErrorException {
 		if (where != null) {
 			if (select.isQuery) {
 				BoolQueryBuilder boolQuery = QueryMaker.explan(where);

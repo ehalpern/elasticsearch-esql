@@ -1,20 +1,18 @@
 package org.nlpcn.es4sql;
 
 
-import junit.framework.Assert;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.nlpcn.es4sql.exception.SqlParseException;
 
 import java.io.IOException;
+import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.nlpcn.es4sql.TestsConstants.TEST_INDEX;
 
@@ -32,7 +30,7 @@ public class DeleteTest {
 
 
 	@Test
-	public void deleteAllTest() throws IOException, SqlParseException, SQLFeatureNotSupportedException {
+	public void deleteAllTest() throws IOException, SQLException, SQLFeatureNotSupportedException {
 		delete(String.format("DELETE FROM %s/account_temp", TEST_INDEX));
 
 		// Assert no results exist for this type.
@@ -44,7 +42,7 @@ public class DeleteTest {
 
 
 	@Test
-	public void deleteWithConditionTest() throws IOException, SqlParseException, SQLFeatureNotSupportedException {
+	public void deleteWithConditionTest() throws IOException, SQLException, SQLFeatureNotSupportedException {
 		delete(String.format("DELETE FROM %s/phrase WHERE phrase = 'quick fox here' ", TEST_INDEX));
 
 		// Assert no results exist for this type.
@@ -55,7 +53,7 @@ public class DeleteTest {
 	}
 
 
-	private void delete(String deleteStatement) throws SqlParseException, SQLFeatureNotSupportedException {
+	private void delete(String deleteStatement) throws SQLException, SQLFeatureNotSupportedException {
 		SearchDao searchDao = MainTestSuite.getSearchDao();
 		searchDao.explain(deleteStatement).get();
 	}

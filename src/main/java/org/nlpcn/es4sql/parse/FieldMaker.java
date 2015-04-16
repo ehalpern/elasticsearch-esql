@@ -7,7 +7,7 @@ import org.nlpcn.es4sql.Util;
 import org.nlpcn.es4sql.domain.Field;
 import org.nlpcn.es4sql.domain.KVValue;
 import org.nlpcn.es4sql.domain.MethodField;
-import org.nlpcn.es4sql.exception.SqlParseException;
+import java.sql.SQLSyntaxErrorException;
 import org.durid.sql.ast.SQLExpr;
 import org.durid.sql.ast.expr.SQLAggregateExpr;
 import org.durid.sql.ast.expr.SQLAggregateExpr.Option;
@@ -25,11 +25,11 @@ import org.durid.sql.ast.expr.SQLQueryExpr;
  *
  */
 public class FieldMaker {
-	public static Field makeField(SQLExpr expr, String alias) throws SqlParseException {
+	public static Field makeField(SQLExpr expr, String alias) throws SQLSyntaxErrorException {
 		if (expr instanceof SQLIdentifierExpr || expr instanceof SQLPropertyExpr) {
 			return new Field(expr.toString(), alias);
 		} else if (expr instanceof SQLQueryExpr) {
-			throw new SqlParseException("unknow field name : " + expr);
+			throw new SQLSyntaxErrorException("unknow field name : " + expr);
 		} else if (expr instanceof SQLAllColumnExpr) {
 		} else if (expr instanceof SQLMethodInvokeExpr) {
 			SQLMethodInvokeExpr mExpr = (SQLMethodInvokeExpr) expr;
@@ -38,12 +38,12 @@ public class FieldMaker {
 			SQLAggregateExpr sExpr = (SQLAggregateExpr) expr;
 			return makeMethodField(sExpr.getMethodName(), sExpr.getArguments(), sExpr.getOption(), alias);
 		} else {
-			throw new SqlParseException("unknow field name : " + expr);
+			throw new SQLSyntaxErrorException("unknow field name : " + expr);
 		}
 		return null;
 	}
 
-	private static MethodField makeMethodField(String name, List<SQLExpr> arguments, Option option, String alias) throws SqlParseException {
+	private static MethodField makeMethodField(String name, List<SQLExpr> arguments, Option option, String alias) throws SQLSyntaxErrorException {
 		List<KVValue> paramers = new LinkedList<>();
 		for (SQLExpr object : arguments) {
 			if (object instanceof SQLBinaryOpExpr) {

@@ -6,7 +6,7 @@ import java.util.List;
 import org.durid.sql.ast.statement.*;
 import org.nlpcn.es4sql.domain.*;
 import org.nlpcn.es4sql.domain.Where.CONN;
-import org.nlpcn.es4sql.exception.SqlParseException;
+import java.sql.SQLSyntaxErrorException;
 import org.durid.sql.ast.SQLExpr;
 import org.durid.sql.ast.SQLOrderBy;
 import org.durid.sql.ast.SQLOrderingSpecification;
@@ -34,7 +34,7 @@ public class SqlParser {
 	public SqlParser() {
 	};
 
-	public Select parseSelect(SQLQueryExpr mySqlExpr) throws SqlParseException {
+	public Select parseSelect(SQLQueryExpr mySqlExpr) throws SQLSyntaxErrorException {
 
 		MySqlSelectQueryBlock query = (MySqlSelectQueryBlock) mySqlExpr.getSubQuery().getQuery();
 
@@ -56,7 +56,7 @@ public class SqlParser {
 	}
 
 
-	public Delete parseDelete(SQLDeleteStatement deleteStatement) throws SqlParseException {
+	public Delete parseDelete(SQLDeleteStatement deleteStatement) throws SQLSyntaxErrorException {
 		Delete delete = new Delete();
 
 		delete.getFrom().addAll(findFrom(deleteStatement.getTableSource()));
@@ -66,7 +66,7 @@ public class SqlParser {
 		return delete;
 	}
 
-	private Where findWhere(SQLExpr where) throws SqlParseException {
+	private Where findWhere(SQLExpr where) throws SQLSyntaxErrorException {
 		if(where == null) {
 			return null;
 		}
@@ -81,7 +81,7 @@ public class SqlParser {
 		return expr.getLeft() instanceof SQLIdentifierExpr || expr.getLeft() instanceof SQLPropertyExpr;
 	}
 
-	private void parseWhere(SQLExpr expr, Where where) throws SqlParseException {
+	private void parseWhere(SQLExpr expr, Where where) throws SQLSyntaxErrorException {
 		if (expr instanceof SQLBinaryOpExpr && !isCond((SQLBinaryOpExpr) expr)) {
 			SQLBinaryOpExpr bExpr = (SQLBinaryOpExpr) expr;
 			routeCond(bExpr, bExpr.left, where);
@@ -91,7 +91,7 @@ public class SqlParser {
 		}
 	}
 
-	private void routeCond(SQLBinaryOpExpr bExpr, SQLExpr sub, Where where) throws SqlParseException {
+	private void routeCond(SQLBinaryOpExpr bExpr, SQLExpr sub, Where where) throws SQLSyntaxErrorException {
 		if (sub instanceof SQLBinaryOpExpr) {
 			parseWhere(bExpr, (SQLBinaryOpExpr) sub, where);
 		} else {
@@ -99,7 +99,7 @@ public class SqlParser {
 		}
 	}
 
-	private void parseWhere(SQLBinaryOpExpr expr, SQLBinaryOpExpr sub, Where where) throws SqlParseException {
+	private void parseWhere(SQLBinaryOpExpr expr, SQLBinaryOpExpr sub, Where where) throws SQLSyntaxErrorException {
 		if (isCond(sub)) {
 			explanCond(expr.operator.name, sub, where);
 		} else {
@@ -114,7 +114,7 @@ public class SqlParser {
 
 	}
 
-	private void explanCond(String opear, SQLExpr expr, Where where) throws SqlParseException {
+	private void explanCond(String opear, SQLExpr expr, Where where) throws SQLSyntaxErrorException {
 		if (expr instanceof SQLBinaryOpExpr) {
 			SQLBinaryOpExpr soExpr = (SQLBinaryOpExpr) expr;
 			Condition condition = new Condition(CONN.valueOf(opear), soExpr.getLeft().toString(), soExpr.getOperator().name, parseValue(soExpr.getRight()));
@@ -129,11 +129,11 @@ public class SqlParser {
 					parseValue(between.endExpr) });
 			where.addWhere(condition);
 		} else {
-			throw new SqlParseException("err find condition " + expr.getClass());
+			throw new SQLSyntaxErrorException("err find condition " + expr.getClass());
 		}
 	}
 
-	private Object[] parseValue(List<SQLExpr> targetList) throws SqlParseException {
+	private Object[] parseValue(List<SQLExpr> targetList) throws SQLSyntaxErrorException {
 		Object[] value = new Object[targetList.size()];
 		for (int i = 0; i < targetList.size(); i++) {
 			value[i] = parseValue(targetList.get(i));
@@ -141,7 +141,7 @@ public class SqlParser {
 		return value;
 	}
 
-	private Object parseValue(SQLExpr expr) throws SqlParseException {
+	private Object parseValue(SQLExpr expr) throws SQLSyntaxErrorException {
 		if (expr instanceof SQLNumericLiteralExpr) {
 			return ((SQLNumericLiteralExpr) expr).getNumber();
 		} else if (expr instanceof SQLCharExpr) {
@@ -153,20 +153,20 @@ public class SqlParser {
 		} else if (expr instanceof SQLIdentifierExpr) {
 			return expr;
 		} else {
-			throw new SqlParseException(
+			throw new SQLSyntaxErrorException(
 					String.format("Failed to parse SqlExpression of type %s. expression value: %s", expr.getClass(), expr)
 			);
 		}
 	}
 
-	private void findSelect(MySqlSelectQueryBlock query, Select select) throws SqlParseException {
+	private void findSelect(MySqlSelectQueryBlock query, Select select) throws SQLSyntaxErrorException {
 		List<SQLSelectItem> selectList = query.getSelectList();
 		for (SQLSelectItem sqlSelectItem : selectList) {
 			select.addField(FieldMaker.makeField(sqlSelectItem.getExpr(), sqlSelectItem.getAlias()));
 		}
 	}
 
-	private void findGroupBy(MySqlSelectQueryBlock query, Select select) throws SqlParseException {
+	private void findGroupBy(MySqlSelectQueryBlock query, Select select) throws SQLSyntaxErrorException {
 		SQLSelectGroupByClause groupBy = query.getGroupBy();
 		if (groupBy == null) {
 			return;
@@ -177,7 +177,7 @@ public class SqlParser {
 		}
 	}
 
-	private void findOrderBy(MySqlSelectQueryBlock query, Select select) throws SqlParseException {
+	private void findOrderBy(MySqlSelectQueryBlock query, Select select) throws SQLSyntaxErrorException {
 		SQLOrderBy orderBy = query.getOrderBy();
 
 		if (orderBy == null) {

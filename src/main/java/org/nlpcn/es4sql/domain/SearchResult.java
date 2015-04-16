@@ -20,7 +20,7 @@ import org.elasticsearch.search.aggregations.bucket.terms.Terms.Bucket;
 import org.elasticsearch.search.aggregations.metrics.InternalNumericMetricsAggregation;
 import org.elasticsearch.search.aggregations.metrics.tophits.InternalTopHits;
 import org.elasticsearch.search.aggregations.metrics.valuecount.InternalValueCount;
-import org.nlpcn.es4sql.exception.SqlParseException;
+import java.sql.SQLSyntaxErrorException;
 
 public class SearchResult {
 	/**
@@ -47,7 +47,7 @@ public class SearchResult {
 		}
 	}
 
-	public SearchResult(SearchResponse resp, Select select) throws SqlParseException {
+	public SearchResult(SearchResponse resp, Select select) throws SQLSyntaxErrorException {
 		Aggregations aggs = resp.getAggregations();
 		if (aggs.get("filter") != null) {
 			InternalFilter inf = aggs.get("filter");
@@ -99,9 +99,9 @@ public class SearchResult {
 	 * 
 	 * @param fields
 	 * @return
-	 * @throws SqlParseException
+	 * @throws SQLSyntaxErrorException
 	 */
-	private Map<String, Object> toAggsMap(Map<String, Aggregation> fields) throws SqlParseException {
+	private Map<String, Object> toAggsMap(Map<String, Aggregation> fields) throws SQLSyntaxErrorException {
 		Map<String, Object> result = new HashMap<>();
 		for (Entry<String, Aggregation> entry : fields.entrySet()) {
 			result.put(entry.getKey(), covenValue(entry.getValue()));
@@ -109,7 +109,7 @@ public class SearchResult {
 		return result;
 	}
 
-	private Object covenValue(Aggregation value) throws SqlParseException {
+	private Object covenValue(Aggregation value) throws SQLSyntaxErrorException {
 		if (value instanceof InternalNumericMetricsAggregation.SingleValue) {
 			return ((InternalNumericMetricsAggregation.SingleValue) value).value();
 		} else if (value instanceof InternalValueCount) {
@@ -119,7 +119,7 @@ public class SearchResult {
 		} else if (value instanceof LongTerms) {
 			return value;
 		} else {
-			throw new SqlParseException("unknow this agg type " + value.getClass());
+			throw new SQLSyntaxErrorException("unknow this agg type " + value.getClass());
 		}
 	}
 

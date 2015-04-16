@@ -1,11 +1,9 @@
-package org.elasticsearch.search.aggregations.metrics.first;
+package org.twine.elasticsearch.search.aggregations.metrics.first;
 
 import org.elasticsearch.script.AbstractSearchScript;
 import org.elasticsearch.script.ExecutableScript;
 import org.elasticsearch.script.NativeScriptFactory;
-import org.elasticsearch.script.ScriptException;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 

@@ -3,7 +3,7 @@ package org.nlpcn.es4sql.query;
 import org.elasticsearch.action.ActionRequestBuilder;
 import org.elasticsearch.client.Client;
 import org.nlpcn.es4sql.domain.Query;
-import org.nlpcn.es4sql.exception.SqlParseException;
+import java.sql.SQLSyntaxErrorException;
 
 /**
  * Abstract class. used to transform Select object (Represents SQL query) to
@@ -25,9 +25,9 @@ public abstract class QueryAction {
 	/**
 	 * Prepare the request, and return ES request.
 	 * @return ActionRequestBuilder (ES request)
-	 * @throws SqlParseException
+	 * @throws SQLSyntaxErrorException
 	 */
-	public abstract ActionRequestBuilder explain() throws SqlParseException;
+	public abstract ActionRequestBuilder explain() throws SQLSyntaxErrorException;
 
 	public Query getQuery() {
 		return query;
