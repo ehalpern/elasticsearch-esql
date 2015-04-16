@@ -6,6 +6,7 @@ import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -16,8 +17,9 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.nlpcn.es4sql.TestsConstants.TEST_INDEX;
 
-public class DeleteTest {
-
+@Ignore // Not supported for now
+public class DeleteTest
+{
 	@Before
 	public void loadTempData() throws Exception {
 		MainTestSuite.loadBulk("src/test/resources/accounts_temp.json");
@@ -27,7 +29,6 @@ public class DeleteTest {
 	public void deleteTempData() throws Exception {
 		MainTestSuite.deleteQuery(TEST_INDEX, "account_temp");
 	}
-
 
 	@Test
 	public void deleteAllTest() throws IOException, SQLException, SQLFeatureNotSupportedException {

@@ -28,12 +28,9 @@ import static org.nlpcn.es4sql.TestsConstants.*;
 
 @RunWith(Suite.class)
 @Suite.SuiteClasses({
-		/*QueryTest.class,
-		MethodQueryTest.class,
+		QueryTest.class,
 		AggregationTest.class,
-		BugTest.class,
-		DeleteTest.class,
-		ExplainTest.class,*/
+		//BugTest.class,
 	  EsqlQueryTest.class
 })
 public class MainTestSuite {

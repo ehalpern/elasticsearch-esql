@@ -14,7 +14,7 @@ public class EsqlUtil
     Pattern r = Pattern.compile(sqlPattern, Pattern.CASE_INSENSITIVE);
     Matcher m = r.matcher(compressed);
     if (m.find()) {
-      String quotedQueryString = EsqlUtil.toSqlString(m.group(2));
+      String quotedQueryString = EsqlUtil.wrapWithSingleQuotes(m.group(2));
       String where = String.format("_q = query(%s)", quotedQueryString);
       String rest = m.group(4) == null ? "" : m.group(4);
       String newSql = String.format("%s%s %s", m.group(1), where, rest);
@@ -24,15 +24,21 @@ public class EsqlUtil
     }
   }
 
-  public static String toSqlString(String esQueryString) {
+  /**
+   * Surround by single quotes and escape all internal quotes
+   */
+  public static String wrapWithSingleQuotes(String esQueryString) {
     String sqlString =
       "'"
-      + esQueryString.trim().replaceAll("(['\"])", "\\$1")
+      + esQueryString.trim().replaceAll("(['\"])", "\\\\$1")
       + "'";
     return sqlString;
   }
 
-  public static String fromSqlString(String sqlString) {
+  /**
+   * Remove enclosing single quotes and unescape internal quotes
+   */
+  public static String unwrapSingleQuotes(String sqlString) {
     String noQuotes = sqlString.replaceAll("^\\s*'(.+)'\\s*$", "$1");
     String esQueryString = noQuotes.replaceAll("\\\\(['\"])", "$1");
     return esQueryString;
@@ -42,14 +48,15 @@ public class EsqlUtil
     return s.trim().replaceAll("\\s+", " ");
   }
 
-  public static String stripQuotes(String s) {
-    return s.trim().replaceAll("^['\"](.+)['\"]$", "$1");
+  /**
+   * Replace single quotes with double quotes.  Add double quotes even
+   * if single quotes are missing.
+   */
+  public static String replaceSingleQuoteWrapperWithDouble(String s) {
+    return s.replaceAll("%", "*").replaceAll("'(.+)'", "\"$1\"");
   }
 
-  /**
-   * Strip quotes and prepend every term with +
-   */
-  public static String toQueryString(String s) {
-    return "+" + compressWhitespace(stripQuotes(s)).replaceAll(" (\\S+)", " +$1");
+  public static String removeQuotesAndReplaceWildcards(String s) {
+    return s.replaceAll("%", "*").replaceAll("'(.+)'", "$1");
   }
 }

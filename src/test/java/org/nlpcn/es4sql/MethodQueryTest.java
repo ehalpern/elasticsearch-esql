@@ -1,6 +1,7 @@
 package org.nlpcn.es4sql;
 
 import org.elasticsearch.action.search.SearchRequestBuilder;
+import org.junit.Ignore;
 import org.junit.Test;
 import java.sql.SQLException;
 
@@ -12,6 +13,7 @@ import java.sql.SQLFeatureNotSupportedException;
  * @author ansj
  *
  */
+@Ignore // Method queries may no longer be supported.  Keep tests for now
 public class MethodQueryTest {
 
 	/**

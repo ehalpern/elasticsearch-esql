@@ -1,6 +1,5 @@
 package org.nlpcn.es4sql.query;
 
-
 import org.elasticsearch.client.Client;
 import org.twine.esql.EsqlCommand;
 import org.twine.esql.EsqlInterpreter;
@@ -8,11 +7,7 @@ import org.twine.esql.EsqlInterpreter;
 public class ESActionFactory
 {
 	/**
-	 * Create the compatible Query object
-	 * based on the SQL query.
-	 *
-	 * @param sql The SQL query.
-	 * @return Query object.
+	 * Create search query from esql string
 	 */
 	public static QueryAction create(Client client, String sql)
 	{

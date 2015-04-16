@@ -14,6 +14,7 @@ import org.elasticsearch.search.aggregations.metrics.stats.Stats;
 import org.elasticsearch.search.aggregations.metrics.sum.Sum;
 import org.elasticsearch.search.aggregations.metrics.valuecount.ValueCount;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -33,7 +34,7 @@ public class AggregationTest {
 
 	@Test
 	public void countTest() throws IOException, SQLException, SQLFeatureNotSupportedException {
-		Aggregations result = query(String.format("SELECT COUNT(*) FROM %s/account", TEST_INDEX));
+		Aggregations result = query(String.format("SELECT COUNT(*) FROM %s.account", TEST_INDEX));
 		ValueCount count = result.get("COUNT(*)");
 		Assert.assertEquals(1000, count.getValue());
 	}
@@ -41,35 +42,35 @@ public class AggregationTest {
 
 	@Test
 	public void sumTest() throws IOException, SQLException, SQLFeatureNotSupportedException {
-		Aggregations result = query(String.format("SELECT SUM(balance) FROM %s/account", TEST_INDEX));
+		Aggregations result = query(String.format("SELECT SUM(balance) FROM %s.account", TEST_INDEX));
 		Sum sum = result.get("SUM(balance)");
 		assertThat(sum.getValue(), equalTo(25714837.0));
 	}
 
 	@Test
 	public void minTest() throws IOException, SQLException, SQLFeatureNotSupportedException {
-		Aggregations result = query(String.format("SELECT MIN(age) FROM %s/account", TEST_INDEX));
+		Aggregations result = query(String.format("SELECT MIN(age) FROM %s.account", TEST_INDEX));
 		Min min = result.get("MIN(age)");
 		assertThat(min.getValue(), equalTo(20.0));
 	}
 
 	@Test
 	public void maxTest() throws IOException, SQLException {
-		Aggregations result = query(String.format("SELECT MAX(age) FROM %s/account", TEST_INDEX));
+		Aggregations result = query(String.format("SELECT MAX(age) FROM %s.account", TEST_INDEX));
 		Max max = result.get("MAX(age)");
 		assertThat(max.getValue(), equalTo(40.0));
 	}
 
 	@Test
 	public void avgTest() throws IOException, SQLException {
-		Aggregations result = query(String.format("SELECT AVG(age) FROM %s/account", TEST_INDEX));
+		Aggregations result = query(String.format("SELECT AVG(age) FROM %s.account", TEST_INDEX));
 		Avg avg = result.get("AVG(age)");
 		assertThat(avg.getValue(), equalTo(30.171));
 	}
 
 	@Test
 	public void statsTest() throws IOException, SQLException {
-		Aggregations result = query(String.format("SELECT STATS(age) FROM %s/account", TEST_INDEX));
+		Aggregations result = query(String.format("SELECT STATS(age) FROM %s.account", TEST_INDEX));
 		Stats stats = result.get("STATS(age)");
 		Assert.assertEquals(1000, stats.getCount());
 		assertThat(stats.getSum(), equalTo(30171.0));
@@ -81,13 +82,13 @@ public class AggregationTest {
 
 	@Test
 	public void aliasTest() throws IOException, SQLException {
-		Aggregations result = query(String.format("SELECT COUNT(*) AS mycount FROM %s/account", TEST_INDEX));
+		Aggregations result = query(String.format("SELECT COUNT(*) AS mycount FROM %s.account", TEST_INDEX));
 		assertThat(result.asMap(), hasKey("mycount"));
 	}
 
 	@Test
 	public void groupByTest() throws Exception {
-		Aggregations result = query(String.format("SELECT COUNT(*) FROM %s/account GROUP BY gender", TEST_INDEX));
+		Aggregations result = query(String.format("SELECT COUNT(*) FROM %s.account GROUP BY gender", TEST_INDEX));
 		Terms gender = result.get("gender");
 		for(Terms.Bucket bucket : gender.getBuckets()) {
 			String key = bucket.getKey();
@@ -110,7 +111,7 @@ public class AggregationTest {
 
 		Map<String, Set<Integer>> buckets = new HashMap<>();
 
-		Aggregations result = query(String.format("SELECT COUNT(*) FROM %s/account GROUP BY gender, age", TEST_INDEX));
+		Aggregations result = query(String.format("SELECT COUNT(*) FROM %s.account GROUP BY gender, age", TEST_INDEX));
 		Terms gender = result.get("gender");
 		for(Terms.Bucket genderBucket : gender.getBuckets()) {
 			String genderKey = genderBucket.getKey();
@@ -131,7 +132,7 @@ public class AggregationTest {
 	public void orderByAscTest() throws IOException, SQLException, SQLFeatureNotSupportedException {
 		ArrayList<Long> agesCount = new ArrayList<>();
 
-		Aggregations result = query(String.format("SELECT COUNT(*) FROM %s/account GROUP BY age ORDER BY COUNT(*)", TEST_INDEX));
+		Aggregations result = query(String.format("SELECT COUNT(*) FROM %s.account GROUP BY age ORDER BY COUNT(*)", TEST_INDEX));
 		Terms age = result.get("age");
 
 		for(Terms.Bucket bucket : age.getBuckets()) {
@@ -148,7 +149,7 @@ public class AggregationTest {
 	public void orderByDescTest() throws IOException, SQLException, SQLFeatureNotSupportedException {
 		ArrayList<Long> agesCount = new ArrayList<>();
 
-		Aggregations result = query(String.format("SELECT COUNT(*) FROM %s/account GROUP BY age ORDER BY COUNT(*) DESC", TEST_INDEX));
+		Aggregations result = query(String.format("SELECT COUNT(*) FROM %s.account GROUP BY age ORDER BY COUNT(*) DESC", TEST_INDEX));
 		Terms age = result.get("age");
 
 		for(Terms.Bucket bucket : age.getBuckets()) {
@@ -164,7 +165,7 @@ public class AggregationTest {
 
 	@Test
 	public void limitTest() throws IOException, SQLException, SQLFeatureNotSupportedException {
-		Aggregations result = query(String.format("SELECT COUNT(*) FROM %s/account GROUP BY age ORDER BY COUNT(*) LIMIT 5", TEST_INDEX));
+		Aggregations result = query(String.format("SELECT COUNT(*) FROM %s.account GROUP BY age ORDER BY COUNT(*) LIMIT 5", TEST_INDEX));
 		Terms age = result.get("age");
 
 		assertThat(age.getBuckets().size(), equalTo(5));
@@ -172,9 +173,9 @@ public class AggregationTest {
 
 
 
-	@Test
+	@Ignore @Test // not yet supported
 	public void countGroupByRange() throws IOException, SQLException, SQLFeatureNotSupportedException {
-		Aggregations result = query(String.format("SELECT COUNT(age) FROM %s/account GROUP BY range(age, 20,25,30,35,40) ", TEST_INDEX));
+		Aggregations result = query(String.format("SELECT COUNT(age) FROM %s.account GROUP BY range(age, 20,25,30,35,40) ", TEST_INDEX));
 		org.elasticsearch.search.aggregations.bucket.range.Range  ageRanges = result.get("range(age,20,25,30,35,40)");
 		assertThat(ageRanges.getBuckets().size(), equalTo(4));
 
@@ -194,7 +195,7 @@ public class AggregationTest {
 	 * @throws IOException
 	 * @throws SQLException
 	 */
-	@Test
+	@Ignore @Test // Not supported yet
 	public void countGroupByDateTest() throws IOException, SQLException, SQLFeatureNotSupportedException {
 		SearchRequestBuilder result = (SearchRequestBuilder) MainTestSuite.getSearchDao().explain("select insert_time from online  group by date_histogram(field='insert_time','interval'='1.5h','format'='yyyy-MM') ");
 		System.out.println(result);
@@ -208,7 +209,7 @@ public class AggregationTest {
 	 * @throws IOException
 	 * @throws SQLException
 	 */
-	@Test
+	@Ignore @Test // not supported yet
 	public void countDateRangeTest() throws IOException, SQLException, SQLFeatureNotSupportedException {
 		SearchRequestBuilder result = (SearchRequestBuilder) MainTestSuite.getSearchDao().explain("select online from online  group by date_range(field='insert_time','format'='yyyy-MM-dd' ,'2014-08-18','2014-08-17','now-8d','now-7d','now-6d','now') ");
 		System.out.println(result);
@@ -223,7 +224,7 @@ public class AggregationTest {
 	 * @throws IOException
 	 * @throws SQLException
 	 */
-	@Test
+	@Ignore @Test // not supported yet
 	public void topHitTest() throws IOException, SQLException, SQLFeatureNotSupportedException {
 		SearchRequestBuilder result = (SearchRequestBuilder) MainTestSuite.getSearchDao().explain("select topHits('size'=3,age='desc') from bank  group by gender ");
 		System.out.println(result);

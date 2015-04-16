@@ -16,6 +16,7 @@ import org.nlpcn.es4sql.domain.From;
 import org.nlpcn.es4sql.domain.KVValue;
 import org.nlpcn.es4sql.domain.MethodField;
 import org.twine.sql.processor.*;
+import static org.twine.esql.EsqlUtil.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,14 +29,14 @@ public class EsqlBuilder
   private final EsqlCommand command = new EsqlCommand();
 
   public static EsqlCommand parse(String esql) {
+    String normalized = normalizeEsql(esql);
     try {
-      Statement statement = CCJSqlParserUtil.parse(
-        EsqlUtil.normalizeEsql(esql)
-      );
+      Statement statement = CCJSqlParserUtil.parse(normalized);
       EsqlBuilder builder = new EsqlBuilder(statement);
       return builder.complete();
     } catch (JSQLParserException e) {
-      String message = e.getCause() == null ? e.getMessage() : e.getCause().getMessage();
+      String message = String.format("%s: [%s]",
+        e.getCause() == null ? e.getMessage() : e.getCause().getMessage(), normalized);
       throw new EsqlInputException(message, e);
     }
   }
@@ -96,8 +97,12 @@ public class EsqlBuilder
     @Override
     public void visit(Function function) {
       List<KVValue> params = new ArrayList<>();
-      for (Expression e: function.getParameters().getExpressions()) {
-        params.add(new KVValue(e.toString()));
+      if (function.getParameters() != null) {
+        for (Expression e : function.getParameters().getExpressions()) {
+          params.add(new KVValue(e.toString()));
+        }
+      } else {
+        params.add(new KVValue("*"));
       }
       String option = function.isDistinct() ? "DISTNCT" : null;
       command.addField(new MethodField(function.getName(), params, option, alias));
@@ -143,7 +148,7 @@ public class EsqlBuilder
         if (params.size() != 1) {
           throw new EsqlInputException("query function must have one parameter");
         } else {
-          addToQuery(EsqlUtil.fromSqlString(params.get(0).toString()));
+          addToQuery(unwrapSingleQuotes(params.get(0).toString()));
         }
       }
     }
@@ -168,7 +173,7 @@ public class EsqlBuilder
 
     public void visit(Parenthesis parenthesis) {
       addToQuery("(");
-      parenthesis.accept(subExpression());
+      parenthesis.getExpression().accept(subExpression());
       addToQuery(")");
     }
 
@@ -198,12 +203,9 @@ public class EsqlBuilder
       boolean skipEquals = equalsTo.getLeftExpression().toString().equals("_q");
       if (!skipEquals) {
         equalsTo.getLeftExpression().accept(subExpression());
-        addToQuery(":(");
+        addToQuery(":");
       }
       equalsTo.getRightExpression().accept(subExpression());
-      if (!skipEquals) {
-        addToQuery(")");
-      }
     }
 
     public void visit(GreaterThan greaterThan) {
@@ -218,7 +220,19 @@ public class EsqlBuilder
       greaterThanEquals.getRightExpression().accept(subExpression());
     }
 
-    public void visit(InExpression inExpression) {
+    public void visit(MinorThan lessThan) {
+      lessThan.getLeftExpression().accept(subExpression());
+      addToQuery(":<");
+      lessThan.getRightExpression().accept(subExpression());
+    }
+
+    public void visit(MinorThanEquals lessThanEquals) {
+      lessThanEquals.getLeftExpression().accept(subExpression());
+      addToQuery(":<=");
+      lessThanEquals.getRightExpression().accept(subExpression());
+    }
+
+    public void visit(final InExpression inExpression) {
       inExpression.getLeftExpression().accept(subExpression());
       addToQuery(":(");
       inExpression.getRightItemsList().accept(new ItemsListVisitorAdapter()
@@ -226,7 +240,11 @@ public class EsqlBuilder
         @Override
         public void visit(ExpressionList expressionList) {
           for (Expression e : expressionList.getExpressions()) {
-            addToQuery(" ");
+            if (inExpression.isNot()) {
+              addToQuery(" -");
+            } else {
+              addToQuery(" ");
+            }
             e.accept(subExpression());
           }
         }
@@ -237,7 +255,9 @@ public class EsqlBuilder
     public void visit(LikeExpression likeExpression) {
       likeExpression.getLeftExpression().accept(subExpression());
       addToQuery(":");
-      addToQuery(likeExpression.getStringExpression().replaceAll("%", "*"));
+      addToQuery(
+        removeQuotesAndReplaceWildcards(likeExpression.getRightExpression().toString())
+      );
     }
 
     public void visit(NotEqualsTo notEqualsTo) {
@@ -253,8 +273,10 @@ public class EsqlBuilder
       addToQuery(value.toString());
     }
     public void visit(TimestampValue value) { addToQuery(value.toString()); }
+
     public void visit(StringValue value) {
-      addToQuery(EsqlUtil.toQueryString(value.toString()));
+      // Use toString() rather than getValue() to ensure the string is quoted
+      addToQuery(replaceSingleQuoteWrapperWithDouble(value.toString()));
     }
   }
 
