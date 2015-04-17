@@ -40,7 +40,7 @@
 	</repositories>
 
 	<properties>
-		<elasticsearch.version>1.4.1</elasticsearch.version>
+		<elasticsearch.version>1.5.1</elasticsearch.version>
 		<downloadSources>true</downloadSources>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <runSuite>**/MainTestSuite.class</runSuite>

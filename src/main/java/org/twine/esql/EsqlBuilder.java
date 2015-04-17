@@ -191,11 +191,20 @@ public class EsqlBuilder
 
     public void visit(Between between) {
       between.getLeftExpression().accept(subExpression());
-      addToQuery(":[");
+      addToQuery(":(");
+      if (between.isNot()) {
+        addToQuery("<");
+      } else {
+        addToQuery(">=");
+      }
       between.getBetweenExpressionStart().accept(subExpression());
-      addToQuery(" TO ");
+      if (between.isNot()) {
+        addToQuery(" AND >");
+      } else {
+        addToQuery(" AND <=");
+      }
       between.getBetweenExpressionEnd().accept(subExpression());
-      addToQuery("]");
+      addToQuery(")");
     }
 
     public void visit(EqualsTo equalsTo) {
@@ -258,6 +267,12 @@ public class EsqlBuilder
       addToQuery(
         removeQuotesAndReplaceWildcards(likeExpression.getRightExpression().toString())
       );
+    }
+
+    public void visit(IsNullExpression isNull) {
+      String test = isNull.isNot() ? "_exists_" : "_missing_";
+      addToQuery(test + ":");
+      isNull.getLeftExpression().accept(subExpression());
     }
 
     public void visit(NotEqualsTo notEqualsTo) {

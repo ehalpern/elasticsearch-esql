@@ -5,7 +5,7 @@ package org.nlpcn.es4sql;
  */
 public class TestsConstants {
 
-	public final static String TEST_INDEX = "elasticsearch_sql_test_index";
+	public final static String TEST_INDEX = "test";
 	public final static String DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
 
 }
