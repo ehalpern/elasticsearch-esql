@@ -261,12 +261,16 @@ public class EsqlBuilder
       addToQuery(")");
     }
 
-    public void visit(LikeExpression likeExpression) {
-      likeExpression.getLeftExpression().accept(subExpression());
-      addToQuery(":");
+    public void visit(LikeExpression like) {
+      like.getLeftExpression().accept(subExpression());
+      addToQuery(":(");
+      if (like.isNot()) {
+        addToQuery("!");
+      }
       addToQuery(
-        removeQuotesAndReplaceWildcards(likeExpression.getRightExpression().toString())
+        removeQuotesAndReplaceWildcards(like.getRightExpression().toString())
       );
+      addToQuery(")");
     }
 
     public void visit(IsNullExpression isNull) {

@@ -14,6 +14,9 @@ import java.util.*;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
+import static org.nlpcn.es4sql.EsMatchers.HitCount.*;
+import static org.nlpcn.es4sql.EsMatchers.EachHit.*;
+import static org.nlpcn.es4sql.EsMatchers.SomeHit.*;
 import static org.junit.Assert.*;
 import static org.nlpcn.es4sql.TestsConstants.DATE_FORMAT;
 import static org.nlpcn.es4sql.TestsConstants.TEST_INDEX;
@@ -23,35 +26,35 @@ public class QueryTest
 {
 	@Test
 	public void searchType() {
-		SearchHits response = query(String.format(
-			"SELECT * FROM %s.phrase LIMIT 1000", TEST_INDEX
-		));
-		assertEquals(4, response.getTotalHits());
+		assertThat(
+			query("SELECT * FROM %s.phrase LIMIT 1000", TEST_INDEX),
+			hitCount(4)
+		);
 	}
 
 	@Ignore @Test // not supported yet
 	public void multipleFrom() {
-		SearchHits response = query(String.format("SELECT * FROM %s.phrase, %s.account LIMIT 2000", TEST_INDEX, TEST_INDEX));
-		assertEquals(1004, response.getTotalHits());
+		assertThat(
+			query("SELECT * FROM %s.phrase, %s.account LIMIT 2000", TEST_INDEX, TEST_INDEX),
+			hitCount(1004)
+		);
 	}
 
 	@Ignore @Test
 	public void indexWithWildcard() {
-		SearchHits response = query("SELECT * FROM elasticsearch-* LIMIT 1000");
-		assertThat(response.getTotalHits(), greaterThan(0L));
+		assertThat(
+			query("SELECT * FROM elasticsearch-* LIMIT 1000"),
+			hitCount(greaterThan(0))
+		);
 	}
 
 
 	@Test
 	public void selectSpecificFields() {
-		String[] arr = new String[] {"age", "account_number"};
-		Set expectedSource = new HashSet(Arrays.asList(arr));
-
-		SearchHits response = query(String.format("SELECT age, account_number FROM %s.account", TEST_INDEX));
-		SearchHit[] hits = response.getHits();
-		for(SearchHit hit : hits) {
-			assertEquals(expectedSource, hit.getSource().keySet());
-		}
+		assertThat(
+			query("SELECT age, account_number FROM %s.account", TEST_INDEX),
+		  eachHit(allOf(hasKey("age"), hasKey("account_number")))
+		);
 	}
 
 
@@ -73,204 +76,179 @@ public class QueryTest
 
 	@Test
 	public void equality() {
-		SearchHits response = query(String.format("select * from %s.account where city = 'Nogal' LIMIT 1000", TEST_INDEX));
-		SearchHit[] hits = response.getHits();
-
-		// assert the results is correct according to accounts.json data.
-		assertEquals(1, response.getTotalHits());
-		assertEquals("Nogal", hits[0].getSource().get("city"));
+		assertThat(
+			query("select * from %s.account where city = 'Nogal' LIMIT 1000", TEST_INDEX),
+			eachHit(hasEntry("city", "Nogal"))
+		);
 	}
 
 
-	// TODO search 'quick fox' still matching 'quick fox brown' this is wrong behavior.
-	// in some cases, depends on the analasis, we might want choose better behavior for equallity.
 	@Test
 	public void equalityPhrase() {
-		SearchHits response = query(String.format("SELECT * FROM %s.phrase WHERE phrase = 'quick fox here' LIMIT 1000", TEST_INDEX));
-		SearchHit[] hits = response.getHits();
-
-		// assert the results is correct according to accounts.json data.
-		assertEquals(1, response.getTotalHits());
-		assertEquals("quick fox here", hits[0].getSource().get("phrase"));
+		assertThat(
+			query("SELECT * FROM %s.phrase WHERE phrase = 'quick fox here' LIMIT 1000", TEST_INDEX),
+			eachHit(hasEntry("phrase", "quick fox here"))
+		);
 	}
 
 
 	@Test
 	public void greaterThanTest() {
-		int someAge = 25;
-		SearchHits response = query(String.format("SELECT * FROM %s WHERE age > %s LIMIT 1000", TEST_INDEX, someAge));
-		SearchHit[] hits = response.getHits();
-		for(SearchHit hit : hits) {
-			int age = (int) hit.getSource().get("age");
-			assertThat(age, greaterThan(someAge));
-		}
+		assertThat(
+			query("SELECT * FROM %s WHERE age > 25 LIMIT 1000", TEST_INDEX),
+			eachHit(hasEntry(is("age"), greaterThan(25)))
+		);
 	}
 
 
 	@Test
 	public void greaterThanOrEqual() {
-		int someAge = 25;
-		SearchHits response = query(String.format("SELECT * FROM %s WHERE age >= %s LIMIT 1000", TEST_INDEX, someAge));
-		SearchHit[] hits = response.getHits();
-
-		boolean isEqualFound = false;
-		for(SearchHit hit : hits) {
-			int age = (int) hit.getSource().get("age");
-			assertThat(age, greaterThanOrEqualTo(someAge));
-
-			if(age == someAge)
-				isEqualFound = true;
-		}
-
-		assertTrue(String.format("at least one of the documents need to contains age equal to %s", someAge), isEqualFound);
+		int age = 25;
+		assertThat(
+			query("SELECT * FROM %s WHERE age >= %s LIMIT 1000", TEST_INDEX, age),
+			allOf(
+				eachHit(hasEntry(is("age"), greaterThanOrEqualTo(age))),
+				someHit(hasEntry("age", age))
+			)
+		);
 	}
 
 
 	@Test
 	public void lessThanTest() {
-		int someAge = 25;
-		SearchHits response = query(String.format("SELECT * FROM %s WHERE age < %s LIMIT 1000", TEST_INDEX, someAge));
-		SearchHit[] hits = response.getHits();
-		for(SearchHit hit : hits) {
-			int age = (int) hit.getSource().get("age");
-			assertThat(age, lessThan(someAge));
-		}
+		int age = 25;
+		assertThat(
+			query("SELECT * FROM %s WHERE age < %s LIMIT 1000", TEST_INDEX, age),
+			eachHit(hasEntry(is("age"), lessThan(age)))
+		);
 	}
 
 
 	@Test
 	public void lessThanOrEqual() {
-		int someAge = 25;
-		SearchHits response = query(String.format("SELECT * FROM %s WHERE age <= %s LIMIT 1000", TEST_INDEX, someAge));
-		SearchHit[] hits = response.getHits();
-
-		boolean isEqualFound = false;
-		for(SearchHit hit : hits) {
-			int age = (int) hit.getSource().get("age");
-			assertThat(age, lessThanOrEqualTo(someAge));
-
-			if(age == someAge)
-				isEqualFound = true;
-		}
-
-		assertTrue(String.format("at least one of the documents need to contains age equal to %s", someAge), isEqualFound);
+		int age = 25;
+		assertThat(
+			query("SELECT * FROM %s WHERE age <= %s LIMIT 1000", TEST_INDEX, age),
+			allOf(
+				eachHit(hasEntry(is("age"), lessThanOrEqualTo(age))),
+				someHit(hasEntry("age", age))
+			)
+		);
 	}
 
 
 	@Test
 	public void or() {
-		SearchHits response = query(String.format("SELECT * FROM %s WHERE gender='F' OR gender='M' LIMIT 1000", TEST_INDEX));
-		// Assert all documents from accounts.json is returned.
-		assertEquals(1000, response.getTotalHits());
+		assertThat(
+			query("SELECT * FROM %s WHERE gender='F' OR gender='M' LIMIT 1000", TEST_INDEX),
+			allOf(
+				hitCount(1000),
+				eachHit(
+					anyOf(
+						hasEntry("gender", "F"),
+						hasEntry("gender", "M")
+					)
+				)
+			)
+		);
 	}
 
 
 	@Test
 	public void and() {
-		SearchHits response = query(String.format("SELECT * FROM %s WHERE age=32 AND gender='M' LIMIT 1000", TEST_INDEX));
-		SearchHit[] hits = response.getHits();
-		for(SearchHit hit : hits) {
-			assertEquals(32, hit.getSource().get("age"));
-			assertEquals("M", hit.getSource().get("gender"));
-		}
+		assertThat(
+			query("SELECT * FROM %s WHERE age=32 AND gender='M' LIMIT 1000", TEST_INDEX),
+			allOf(
+				eachHit(hasEntry("age", 32)),
+				eachHit(hasEntry("gender", "M"))
+			)
+		);
 	}
 
 
 	@Test
 	public void like() {
-		SearchHits response = query(String.format("SELECT * FROM %s WHERE firstname LIKE 'amb%%' LIMIT 1000", TEST_INDEX));
-		SearchHit[] hits = response.getHits();
-
-		// assert the results is correct according to accounts.json data.
-		assertEquals(1, response.getTotalHits());
-		assertEquals("Amber", hits[0].getSource().get("firstname"));
+		assertThat(
+			query("SELECT * FROM %s WHERE firstname LIKE 'amb%%' LIMIT 1000", TEST_INDEX),
+			eachHit(hasEntry("firstname", "Amber"))
+		);
 	}
 
+	@Test
+	public void notLike() {                                                                                  
+		assertThat(
+			query("SELECT * FROM %s WHERE firstname NOT LIKE 'amb%%' LIMIT 1000", TEST_INDEX),
+			allOf(
+				hitCount(greaterThan(1)),
+				eachHit(not(hasEntry("firstname", "Amber")))
+			)
+		);
+	}
 
 	@Test
 	public void limit() {
-		SearchHits response = query(String.format("SELECT * FROM %s LIMIT 30", TEST_INDEX));
-		SearchHit[] hits = response.getHits();
-
-		// assert the results is correct according to accounts.json data.
-		assertEquals(30, hits.length);
+		assertThat(
+			query("SELECT * FROM %s LIMIT 30", TEST_INDEX),
+			hitCount(30)
+		);
 	}
-
 
 	@Test
 	public void between() {
 		int min = 27;
 		int max = 30;
-		SearchHits response = query(String.format("SELECT * FROM %s WHERE age BETWEEN %s AND %s LIMIT 1000", TEST_INDEX, min, max));
-		SearchHit[] hits = response.getHits();
-		for(SearchHit hit : hits) {
-			int age = (int) hit.getSource().get("age");
-			assertThat(age, allOf(greaterThanOrEqualTo(min), lessThanOrEqualTo(max)));
-		}
+		assertThat(
+			query("SELECT * FROM %s WHERE age BETWEEN %s AND %s LIMIT 1000", TEST_INDEX, min, max),
+			eachHit(
+				hasEntry(
+					is("age"),
+					allOf(greaterThanOrEqualTo(min), lessThanOrEqualTo(max))
+				)
+			)
+		);
 	}
 
 
-	/*
-	TODO when using not between on some field, documents that not contains this
-	 field will return as well, That may considered a Wrong behaivor.
+	/**
+	 * @todo NOT currently includes documents that do not contain the field.  Should
+	 *       documents that don't include the field be excluded?  What does MySQL do?
 	 */
 	@Test
 	public void notBetween() {
 		int min = 20;
 		int max = 37;
-		SearchHits response = query(String.format("SELECT * FROM %s WHERE age NOT BETWEEN %s AND %s LIMIT 1000", TEST_INDEX, min, max));
-		SearchHit[] hits = response.getHits();
-		for(SearchHit hit : hits) {
-			Map<String, Object> source = hit.getSource();
-
-			// ignore document which not contains the age field.
-			if(source.containsKey("age")) {
-				int age = (int) hit.getSource().get("age");
-				assertThat(age, not(allOf(greaterThanOrEqualTo(min), lessThanOrEqualTo(max))));
-			}
-		}
+		assertThat(
+			query("SELECT * FROM %s WHERE age NOT BETWEEN %s AND %s LIMIT 1000", TEST_INDEX, min, max),
+			eachHit(hasEntry(is("age"), allOf(lessThan(min), greaterThan(max))))
+		);
 	}
-
 
 	@Test
 	public void in(){
-		SearchHits response = query(String.format("SELECT age FROM %s.phrase WHERE age IN (20, 22) LIMIT 1000", TEST_INDEX));
-		SearchHit[] hits = response.getHits();
-		for(SearchHit hit : hits) {
-			int age = (int) hit.getSource().get("age");
-			assertThat(age, isOneOf(20, 22));
-		}
+		assertThat(
+			query("SELECT age FROM %s.phrase WHERE age IN (20, 22) LIMIT 1000", TEST_INDEX),
+			eachHit(hasEntry(is("age"), isOneOf(20, 22)))
+		);
 	}
-
 
 	@Test
-	public void inTestWithStrings(){
-		SearchHits response = query(String.format("SELECT phrase FROM %s.phrase WHERE phrase IN ('quick fox here', 'fox brown') LIMIT 1000", TEST_INDEX));
-		SearchHit[] hits = response.getHits();
-		assertEquals(2, response.getTotalHits());
-		for(SearchHit hit : hits) {
-			String phrase = (String) hit.getSource().get("phrase");
-			assertThat(phrase, isOneOf("quick fox here", "fox brown"));
-		}
+	public void inTestWithStrings() {
+		assertThat(
+			query("SELECT phrase FROM %s.phrase WHERE phrase IN ('quick fox here', 'fox brown') LIMIT 1000", TEST_INDEX),
+			eachHit(hasEntry(is("phrase"), isOneOf("quick fox here", "fox brown")))
+		);
 	}
 
 
-	/* TODO when using not in on some field, documents that not contains this
-	field will return as well, That may considered a Wrong behaivor.
+	/**
+	 * @see #notBetween
 	*/
 	@Test
 	public void notIn() {
-		SearchHits response = query(String.format("SELECT age FROM %s WHERE age NOT IN (20, 22) LIMIT 1000", TEST_INDEX));
-		SearchHit[] hits = response.getHits();
-		for(SearchHit hit : hits) {
-			Map<String, Object> source = hit.getSource();
-
-			// ignore document which not contains the age field.
-			if(source.containsKey("age")) {
-				int age = (int) source.get("age");
-				assertThat(age, not(isOneOf(20, 22)));
-			}
-		}
+		assertThat(
+			query("SELECT age FROM %s WHERE age NOT IN (20, 22) LIMIT 1000", TEST_INDEX),
+			eachHit(not(hasEntry(is("age"), isOneOf(20, 22))))
+		);
 	}
 	
 	
@@ -279,7 +257,7 @@ public class QueryTest
 		DateTimeFormatter formatter = DateTimeFormat.forPattern(DATE_FORMAT);
 		DateTime dateToCompare = new DateTime(2014, 8, 18, 0, 0, 0);
 
-		SearchHits response = query(String.format("SELECT insert_time FROM %s.online WHERE insert_time < '2014-08-18'", TEST_INDEX));
+		SearchHits response = query("SELECT insert_time FROM %s.online WHERE insert_time < '2014-08-18'", TEST_INDEX);
 		SearchHit[] hits = response.getHits();
 		for(SearchHit hit : hits) {
 			Map<String, Object> source = hit.getSource();
@@ -295,7 +273,7 @@ public class QueryTest
         DateTimeFormatter formatter = DateTimeFormat.forPattern(DATE_FORMAT);
         DateTime dateToCompare = new DateTime(2015, 1, 15, 0, 0, 0);
 
-        SearchHits response = query(String.format("SELECT insert_time FROM %s.odbc WHERE insert_time < {ts '2015-03-15 00:00:00.000'}", TEST_INDEX));
+        SearchHits response = query("SELECT insert_time FROM %s.odbc WHERE insert_time < {ts '2015-03-15 00:00:00.000'}", TEST_INDEX);
         SearchHit[] hits = response.getHits();
         for(SearchHit hit : hits) {
             Map<String, Object> source = hit.getSource();
@@ -314,7 +292,7 @@ public class QueryTest
 		DateTime dateLimit1 = new DateTime(2014, 8, 18, 0, 0, 0);
 		DateTime dateLimit2 = new DateTime(2014, 8, 21, 0, 0, 0);
 
-		SearchHits response = query(String.format("SELECT insert_time FROM %s.online WHERE insert_time BETWEEN '2014-08-18' AND '2014-08-21' LIMIT 3", TEST_INDEX));
+		SearchHits response = query("SELECT insert_time FROM %s.online WHERE insert_time BETWEEN '2014-08-18' AND '2014-08-21' LIMIT 3", TEST_INDEX);
 		SearchHit[] hits = response.getHits();
 		for(SearchHit hit : hits) {
 			Map<String, Object> source = hit.getSource();
@@ -329,28 +307,20 @@ public class QueryTest
 	}
 
 
-	@Test // should be NULL
+	@Test
 	public void isNullSearch() {
-		SearchHits response = query(String.format("SELECT * FROM %s.phrase WHERE insert_time IS NULL", TEST_INDEX));
-		SearchHit[] hits = response.getHits();
-
-		// should be 2 according to the data.
-		assertEquals(response.getTotalHits(), 2);
-		for(SearchHit hit : hits) {
-			assertThat(hit.getSource(), not(hasKey("insert_time")));
-		}
+		assertThat(
+			query("SELECT * FROM %s.phrase WHERE insert_time IS NULL", TEST_INDEX),
+			eachHit(not(hasKey("insertTime")))
+		);
 	}
 
-	@Test // should be NULL
+	@Test
 	public void isNotNullSearch() {
-		SearchHits response = query(String.format("SELECT * FROM %s.phrase WHERE insert_time IS NOT NULL", TEST_INDEX));
-		SearchHit[] hits = response.getHits();
-
-		// should be 2 according to the data.
-		assertEquals(response.getTotalHits(), 2);
-		for(SearchHit hit : hits) {
-			assertThat(hit.getSource(), hasKey("insert_time"));
-		}
+		assertThat(
+			query("SELECT * FROM %s.phrase WHERE insert_time IS NOT NULL", TEST_INDEX),
+			eachHit(hasKey("insert_time"))
+		);
 	}
 	
 
@@ -359,7 +329,7 @@ public class QueryTest
 	public void complexConditionQuery(){
 		String errorMessage = "Result does not exist to the condition (gender='m' AND (age> 25 OR account_number>5)) OR (gender='f' AND (age>30 OR account_number < 8)";
 
-		SearchHits response = query(String.format("SELECT * FROM %s.account WHERE (gender='m' AND (age> 25 OR account_number>5)) OR (gender='f' AND (age>30 OR account_number < 8))", TEST_INDEX));
+		SearchHits response = query("SELECT * FROM %s.account WHERE (gender='m' AND (age> 25 OR account_number>5)) OR (gender='f' AND (age>30 OR account_number < 8))", TEST_INDEX);
 		SearchHit[] hits = response.getHits();
 
 		for(SearchHit hit : hits) {
@@ -375,7 +345,7 @@ public class QueryTest
 
 	@Test
 	public void orderByAsc() {
-		SearchHits response = query(String.format("SELECT age FROM %s.account ORDER BY age ASC LIMIT 1000", TEST_INDEX));
+		SearchHits response = query("SELECT age FROM %s.account ORDER BY age ASC LIMIT 1000", TEST_INDEX);
 		SearchHit[] hits = response.getHits();
 
 		ArrayList<Integer> ages = new ArrayList<Integer>();
@@ -391,7 +361,7 @@ public class QueryTest
 
 	@Test
 	public void orderByDesc() {
-		SearchHits response = query(String.format("SELECT age FROM %s.account ORDER BY age DESC LIMIT 1000", TEST_INDEX));
+		SearchHits response = query("SELECT age FROM %s.account ORDER BY age DESC LIMIT 1000", TEST_INDEX);
 		SearchHit[] hits = response.getHits();
 
 		ArrayList<Integer> ages = new ArrayList<Integer>();
@@ -405,27 +375,34 @@ public class QueryTest
 	}
 
     @Test
-    public void multipartWhere(){
-        SearchHits response = query(String.format("SELECT * FROM %s.account WHERE (firstname LIKE 'opal' OR firstname like 'rodriquez') AND (state like 'oh' OR state like 'hi')", TEST_INDEX));
-        assertEquals(2, response.getTotalHits());
+    public void multipartWhere() {
+			assertThat(
+        query("SELECT * FROM %s.account WHERE (firstname LIKE 'opal' OR firstname like 'rodriquez') AND (state like 'oh' OR state like 'hi')", TEST_INDEX),
+				hitCount(2)
+			);
     }
 
     @Test // 11 results is wrong
-    public void multipartWhere2(){
-        SearchHits response = query(String.format("SELECT * FROM %s.account where ((account_number > 200 and account_number < 300) or gender like 'm') and (state like 'hi' or address like 'avenue')", TEST_INDEX));
-        assertEquals(127, response.getTotalHits());
+    public void multipartWhere2() {
+			assertThat(
+				query("SELECT * FROM %s.account where ((account_number > 200 and account_number < 300) or gender like 'm') and (state like 'hi' or address like 'avenue')", TEST_INDEX),
+        hitCount(127)
+			);
     }
 
     @Test
     public void multipartWhere3() {
-        SearchHits response = query(String.format("SELECT * FROM %s.account where ((account_number > 25 and account_number < 75) and age >35 ) and (state like 'md' or (address like 'avenue' or address like 'street'))", TEST_INDEX));
-        assertEquals(7, response.getTotalHits());
+			assertThat(
+        query("SELECT * FROM %s.account where ((account_number > 25 and account_number < 75) and age >35 ) and (state like 'md' or (address like 'avenue' or address like 'street'))", TEST_INDEX),
+        hitCount(7)
+			);
     }
 
-	private SearchHits query(String query) {
+	private SearchHits query(String query, Object... args) {
 		try {
+			String q = String.format(query, args);
 			SearchDao searchDao = MainTestSuite.getSearchDao();
-			SearchRequestBuilder select = (SearchRequestBuilder) searchDao.explain(query);
+			SearchRequestBuilder select = (SearchRequestBuilder) searchDao.explain(q);
 			return select.get().getHits();
 		} catch (SQLException e) {
 			throw new RuntimeException(e);
