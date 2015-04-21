@@ -5,18 +5,16 @@ import org.elasticsearch.search.SearchHits;
 import org.hamcrest.Description;
 import org.hamcrest.Factory;
 import org.hamcrest.Matcher;
-
 import org.hamcrest.TypeSafeMatcher;
 
 import java.util.Map;
-import java.util.Set;
 
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.is;
 
 /**
  * Created by eric on 4/16/15.
  */
-public class EsMatchers
+public class ElasticSearchMatchers
 {
   public static class EachHit extends TypeSafeMatcher<SearchHits> {
     private final Matcher<Map<String, Object>> matcher;

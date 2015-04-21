@@ -1,5 +1,8 @@
 package org.twine.esql;
 
+import org.parboiled.support.ParsingResult;
+import org.twine.esqs.EsqsParser;
+
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -13,14 +16,21 @@ public class EsqlUtil
     String sqlPattern = "(SELECT .+ FROM .+ WHERE )(.+:((?!GROUP BY|ORDER BY|LIMIT).)+)((GROUP BY|ORDER BY|LIMIT).+)?";
     Pattern r = Pattern.compile(sqlPattern, Pattern.CASE_INSENSITIVE);
     Matcher m = r.matcher(compressed);
-    if (m.find()) {
-      String quotedQueryString = EsqlUtil.wrapWithSingleQuotes(m.group(2));
-      String where = String.format("_q = query(%s)", quotedQueryString);
-      String rest = m.group(4) == null ? "" : m.group(4);
-      String newSql = String.format("%s%s %s", m.group(1), where, rest);
-      return newSql;
-    } else {
+
+    if (!m.find()) {
       return sql;
+    } else {
+      String esqs = m.group(2);
+      ParsingResult pr = EsqsParser.parse(esqs);
+      if (!pr.matched) {
+        return sql;
+      } else {
+        String quotedQueryString = EsqlUtil.wrapWithSingleQuotes(esqs);
+        String where = String.format("_q = query(%s)", quotedQueryString);
+        String rest = m.group(4) == null ? "" : m.group(4);
+        String newSql = String.format("%s%s %s", m.group(1), where, rest);
+        return newSql;
+      }
     }
   }
 

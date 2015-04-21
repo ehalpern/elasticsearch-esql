@@ -196,7 +196,7 @@ public class AggregationTest {
 	 * @throws SQLException
 	 */
 	@Ignore @Test // Not supported yet
-	public void countGroupByDateTest() throws IOException, SQLException, SQLFeatureNotSupportedException {
+	public void countGroupByDateTest() throws IOException, SQLException {
 		SearchRequestBuilder result = (SearchRequestBuilder) MainTestSuite.getSearchDao().explain("select insert_time from online  group by date_histogram(field='insert_time','interval'='1.5h','format'='yyyy-MM') ");
 		System.out.println(result);
 	}

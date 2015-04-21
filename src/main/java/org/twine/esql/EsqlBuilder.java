@@ -287,15 +287,27 @@ public class EsqlBuilder
 
     public void visit(DoubleValue value) { addToQuery(value.toString()); }
     public void visit(LongValue value) { addToQuery(value.toString()); }
-    public void visit(DateValue value) { addToQuery(value.toString()); }
-    public void visit(TimeValue value) {
-      addToQuery(value.toString());
+
+    public void visit(DateValue value) {
+      addToQuery(value.getValue().toString());
     }
-    public void visit(TimestampValue value) { addToQuery(value.toString()); }
+
+    public void visit(TimeValue value) {
+      addToQuery(value.getValue().toString());
+    }
+
+    public void visit(TimestampValue value) {
+      addToQuery(value.getValue().toString());
+    }
 
     public void visit(StringValue value) {
       // Use toString() rather than getValue() to ensure the string is quoted
-      addToQuery(replaceSingleQuoteWrapperWithDouble(value.toString()));
+      String actual = value.getValue();
+      if (actual.contains(" ")) {
+        addToQuery("\"" + actual + "\"");
+      } else {
+        addToQuery(actual);
+      }
     }
   }
 

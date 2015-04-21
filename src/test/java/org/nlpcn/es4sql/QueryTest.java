@@ -6,6 +6,7 @@ import org.elasticsearch.common.joda.time.format.DateTimeFormat;
 import org.elasticsearch.common.joda.time.format.DateTimeFormatter;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
+import org.hamcrest.CustomMatcher;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -14,9 +15,9 @@ import java.util.*;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
-import static org.nlpcn.es4sql.EsMatchers.HitCount.*;
-import static org.nlpcn.es4sql.EsMatchers.EachHit.*;
-import static org.nlpcn.es4sql.EsMatchers.SomeHit.*;
+import static org.nlpcn.es4sql.ElasticSearchMatchers.HitCount.*;
+import static org.nlpcn.es4sql.ElasticSearchMatchers.EachHit.*;
+import static org.nlpcn.es4sql.ElasticSearchMatchers.SomeHit.*;
 import static org.junit.Assert.*;
 import static org.nlpcn.es4sql.TestsConstants.DATE_FORMAT;
 import static org.nlpcn.es4sql.TestsConstants.TEST_INDEX;
@@ -57,22 +58,13 @@ public class QueryTest
 		);
 	}
 
-
-	// TODO field aliases is not supported currently. it might be possible to change field names after the query already executed.
-	/*
-	@Test
+	@Ignore @Test // Not implemented yet
 	public void selectAliases() {
-		String[] arr = new String[] {"myage", "myaccount_number"};
-		Set expectedSource = new HashSet(Arrays.asList(arr));
-
-		SearchHits response = query(String.format("SELECT age AS myage, account_number AS myaccount_number FROM %s/account", TEST_INDEX));
-		SearchHit[] hits = response.getHits();
-		for(SearchHit hit : hits) {
-			assertEquals(expectedSource, hit.getSource().keySet());
-		}
+		assertThat(
+			query("SELECT age AS myage, account_number AS myaccount_number FROM %s/account", TEST_INDEX),
+			eachHit(allOf(hasKey("myage"), hasKey("myaccount_number")))
+		);
 	}
-	*/
-
 
 	@Test
 	public void equality() {
@@ -82,7 +74,6 @@ public class QueryTest
 		);
 	}
 
-
 	@Test
 	public void equalityPhrase() {
 		assertThat(
@@ -91,7 +82,6 @@ public class QueryTest
 		);
 	}
 
-
 	@Test
 	public void greaterThanTest() {
 		assertThat(
@@ -99,7 +89,6 @@ public class QueryTest
 			eachHit(hasEntry(is("age"), greaterThan(25)))
 		);
 	}
-
 
 	@Test
 	public void greaterThanOrEqual() {
@@ -123,7 +112,6 @@ public class QueryTest
 		);
 	}
 
-
 	@Test
 	public void lessThanOrEqual() {
 		int age = 25;
@@ -135,7 +123,6 @@ public class QueryTest
 			)
 		);
 	}
-
 
 	@Test
 	public void or() {
@@ -153,7 +140,6 @@ public class QueryTest
 		);
 	}
 
-
 	@Test
 	public void and() {
 		assertThat(
@@ -164,7 +150,6 @@ public class QueryTest
 			)
 		);
 	}
-
 
 	@Test
 	public void like() {
@@ -210,8 +195,11 @@ public class QueryTest
 
 
 	/**
-	 * @todo NOT currently includes documents that do not contain the field.  Should
-	 *       documents that don't include the field be excluded?  What does MySQL do?
+	 * @note The current null behavior is not ANSI Nulls but rather null = null.  This means
+	 *       age NOT BETWEEN will return rows for which age = null.  With ANSI null behavior,
+	 *       null is considered unknown (meaning null != null).  An ANSI compliant query would
+	 *       not return rows with age = null because this value means we don't know age's value
+	 *       and hence cannot say that it's not between 20 and 37.
 	 */
 	@Test
 	public void notBetween() {
@@ -239,7 +227,6 @@ public class QueryTest
 		);
 	}
 
-
 	/**
 	 * @see #notBetween
 	*/
@@ -250,62 +237,48 @@ public class QueryTest
 			eachHit(not(hasEntry(is("age"), isOneOf(20, 22))))
 		);
 	}
-	
-	
-	@Ignore @Test // Date formatting not working yet
-	public void dateSearch() {
-		DateTimeFormatter formatter = DateTimeFormat.forPattern(DATE_FORMAT);
-		DateTime dateToCompare = new DateTime(2014, 8, 18, 0, 0, 0);
 
-		SearchHits response = query("SELECT insert_time FROM %s.online WHERE insert_time < '2014-08-18'", TEST_INDEX);
-		SearchHit[] hits = response.getHits();
-		for(SearchHit hit : hits) {
-			Map<String, Object> source = hit.getSource();
-			DateTime insertTime = formatter.parseDateTime((String) source.get("insert_time"));
-
-			String errorMessage = String.format("insert_time must be smaller then 2014-08-18. found: %s", insertTime);
-			assertTrue(errorMessage, insertTime.isBefore(dateToCompare));
-		}
+	
+	@Ignore @Test // Elasticsearch has a bug parsing <, > range queries with dates
+	              // containing times.
+	public void dateSearch()
+	{
+		final DateTimeFormatter format = DateTimeFormat.forPattern(DATE_FORMAT);
+		final DateTime endDate = format.parseDateTime("2014-08-18:00:00:00.000Z");
+		assertThat(
+			query("SELECT insert_time FROM %s.online WHERE insert_time < '%s'", TEST_INDEX, endDate),
+			eachHit(hasEntry(is("insert_time"), is(
+				new CustomMatcher<String>("check data") {
+					public boolean matches(Object item) {
+						DateTime actual = format.parseDateTime((String)item);
+						return actual.isBefore(endDate);
+					}
+				}
+			)))
+		);
 	}
 
-    //@Test disable broken test: fails with Invalid format: "{ts '2015-03-13 13:27:33.954'}"
-    public void dateSearchBraces() {
-        DateTimeFormatter formatter = DateTimeFormat.forPattern(DATE_FORMAT);
-        DateTime dateToCompare = new DateTime(2015, 1, 15, 0, 0, 0);
+	@Test
+	public void dateBetweenSearch()
+	{
+		final DateTimeFormatter format = DateTimeFormat.forPattern(DATE_FORMAT);
+		final DateTime dateLimit1 = new DateTime(2014, 8, 18, 0, 0, 0);
+		final DateTime dateLimit2 = new DateTime(2014, 8, 21, 0, 0, 0);
 
-        SearchHits response = query("SELECT insert_time FROM %s.odbc WHERE insert_time < {ts '2015-03-15 00:00:00.000'}", TEST_INDEX);
-        SearchHit[] hits = response.getHits();
-        for(SearchHit hit : hits) {
-            Map<String, Object> source = hit.getSource();
-            DateTime insertTime = formatter.parseDateTime((String) source.get("insert_time"));
-
-            String errorMessage = String.format("insert_time must be smaller then 2015-03-15. found: %s", insertTime);
-            assertTrue(errorMessage, insertTime.isBefore(dateToCompare));
-        }
-    }
-
-
-	@Ignore @Test
-	public void dateBetweenSearch() {
-		DateTimeFormatter formatter = DateTimeFormat.forPattern(DATE_FORMAT);
-
-		DateTime dateLimit1 = new DateTime(2014, 8, 18, 0, 0, 0);
-		DateTime dateLimit2 = new DateTime(2014, 8, 21, 0, 0, 0);
-
-		SearchHits response = query("SELECT insert_time FROM %s.online WHERE insert_time BETWEEN '2014-08-18' AND '2014-08-21' LIMIT 3", TEST_INDEX);
-		SearchHit[] hits = response.getHits();
-		for(SearchHit hit : hits) {
-			Map<String, Object> source = hit.getSource();
-			DateTime insertTime = formatter.parseDateTime((String) source.get("insert_time"));
-
-			boolean isBetween =
-					(insertTime.isAfter(dateLimit1) || insertTime.isEqual(dateLimit1)) &&
-					(insertTime.isBefore(dateLimit2) || insertTime.isEqual(dateLimit2));
-
-			assertTrue("insert_time must be between 2014-08-18 and 2014-08-21", isBetween);
-		}
+		assertThat(
+			query("SELECT insert_time FROM %s.online WHERE insert_time " +
+				"BETWEEN '2014-08-18' AND '2014-08-21' LIMIT 3", TEST_INDEX),
+			eachHit(hasEntry(is("insert_time"), is(
+				new CustomMatcher<String>("check data") {
+					public boolean matches(Object item) {
+						DateTime actual = format.parseDateTime((String) item);
+						return (actual.isAfter(dateLimit1) || actual.isEqual(dateLimit1)) &&
+									 (actual.isBefore(dateLimit2) || actual.isEqual(dateLimit2));
+					}
+				}
+			)))
+		);
 	}
-
 
 	@Test
 	public void isNullSearch() {
@@ -324,22 +297,28 @@ public class QueryTest
 	}
 	
 
-
 	@Test
 	public void complexConditionQuery(){
-		String errorMessage = "Result does not exist to the condition (gender='m' AND (age> 25 OR account_number>5)) OR (gender='f' AND (age>30 OR account_number < 8)";
-
-		SearchHits response = query("SELECT * FROM %s.account WHERE (gender='m' AND (age> 25 OR account_number>5)) OR (gender='f' AND (age>30 OR account_number < 8))", TEST_INDEX);
-		SearchHit[] hits = response.getHits();
-
-		for(SearchHit hit : hits) {
-			Map<String, Object> source = hit.getSource();
-			String gender = ((String)source.get("gender")).toLowerCase();
-			int age = (int)source.get("age");
-			int account_number = (int) source.get("account_number");
-
-			assertTrue(errorMessage, (gender.equals("m") && (age > 25 || account_number > 5)) || (gender.equals("f") && (age > 30 || account_number < 8)));
-		}
+		assertThat(
+			query(
+				"SELECT * FROM %s.account" +
+				"  WHERE (gender='m' AND (age> 25 OR account_number>5))" +
+				"    OR (gender='f' AND (age>30 OR account_number < 8))",
+				TEST_INDEX
+			),
+			eachHit(
+				new CustomMatcher<Map<? extends String, ? extends Object>>("match complex condition") {
+					public boolean matches(Object entries) {
+						Map<String, Object> map = (Map)entries;
+						String gender =  (String)map.get("gender");
+						int    age =     (Integer)map.get("age");
+						int    account = (Integer)map.get("account_number");
+						return (gender.equals("M") && (age > 25 || account > 5))
+								|| (gender.equals("F") && (age > 30 || account < 8));
+					}
+				}
+			)
+		);
 	}
 
 
@@ -386,7 +365,7 @@ public class QueryTest
     public void multipartWhere2() {
 			assertThat(
 				query("SELECT * FROM %s.account where ((account_number > 200 and account_number < 300) or gender like 'm') and (state like 'hi' or address like 'avenue')", TEST_INDEX),
-        hitCount(127)
+				hitCount(127)
 			);
     }
 
