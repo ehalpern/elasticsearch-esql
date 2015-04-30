@@ -8,6 +8,7 @@ import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.rest.*;
 import org.nlpcn.es4sql.SearchDao;
 import org.nlpcn.es4sql.query.explain.ExplainManager;
+import org.twine.esql.EsqlInputException;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -35,17 +36,22 @@ public class RestSqlAction extends BaseRestHandler {
 			sql = request.content().toUtf8();
 		}
 
-		SearchDao searchDao = new SearchDao(client);
-		ActionRequestBuilder actionRequestBuilder = searchDao.explain(sql);
-		ActionRequest actionRequest = actionRequestBuilder.request();
+		try {
+			SearchDao searchDao = new SearchDao(client);
+			ActionRequestBuilder esRequestBuilder = searchDao.explain(sql);
+			ActionRequest esRequest = esRequestBuilder.request();
 
-		// TODO add unittests to explain. (rest level?)
-		if (request.path().endsWith("/_explain")) {
-			String jsonExplanation = ExplainManager.explain(actionRequestBuilder);
-			BytesRestResponse bytesRestResponse = new BytesRestResponse(RestStatus.OK, jsonExplanation);
-			channel.sendResponse(bytesRestResponse);
-		} else {
-			new ActionRequestExecuter(actionRequest, channel, client, searchDao.getColumns()).execute();
+			if (request.path().endsWith("/_explain")) {
+				String jsonExplanation = ExplainManager.explain(esRequestBuilder);
+				BytesRestResponse response = new BytesRestResponse(RestStatus.OK, jsonExplanation);
+				channel.sendResponse(response);
+			} else {
+				new RestSqlExecuter(esRequest, channel, client, searchDao.getColumns()).execute();
+			}
+		} catch (EsqlInputException e) {
+			channel.sendResponse(new BytesRestResponse(RestStatus.BAD_REQUEST, e.getMessage()));
+		} catch (IOException|SQLException|RuntimeException e) {
+			throw e;
 		}
 	}
 }

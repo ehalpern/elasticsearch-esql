@@ -6,6 +6,8 @@ import net.sf.jsqlparser.expression.operators.conditional.AndExpression;
 import net.sf.jsqlparser.expression.operators.conditional.OrExpression;
 import net.sf.jsqlparser.expression.operators.relational.*;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
+import net.sf.jsqlparser.parser.ParseException;
+import net.sf.jsqlparser.parser.TokenMgrError;
 import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.Statement;
@@ -34,10 +36,8 @@ public class EsqlBuilder
       Statement statement = CCJSqlParserUtil.parse(normalized);
       EsqlBuilder builder = new EsqlBuilder(statement);
       return builder.complete();
-    } catch (JSQLParserException e) {
-      String message = String.format("%s: [%s]",
-        e.getCause() == null ? e.getMessage() : e.getCause().getMessage(), normalized);
-      throw new EsqlInputException(message, e);
+    } catch (JSQLParserException|TokenMgrError e) {
+      throw new EsqlSyntaxException(e);
     }
   }
 
@@ -146,7 +146,7 @@ public class EsqlBuilder
       if (function.getName().equals("query")) {
         List<Expression> params = function.getParameters().getExpressions();
         if (params.size() != 1) {
-          throw new EsqlInputException("query function must have one parameter");
+          throw new EsqlSyntaxException("query() function expects exactly 1 parameter");
         } else {
           addToQuery(unwrapSingleQuotes(params.get(0).toString()));
         }

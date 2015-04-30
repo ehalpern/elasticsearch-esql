@@ -15,30 +15,28 @@ import net.sf.jsqlparser.statement.select.SelectVisitor;
 import net.sf.jsqlparser.statement.truncate.Truncate;
 import net.sf.jsqlparser.statement.update.Update;
 
-public class StatementProcessor implements StatementVisitor
+public abstract class StatementProcessor implements StatementVisitor
 {
-	protected SelectVisitor select() {
-		return new SelectStatementProcessor();
-	}
+	protected abstract SelectVisitor select();
 
 	public void visit(Select select) {
 		select.getSelectBody().accept(select());
 	}
 
 	public void visit(Delete delete) {
-		throw new UnsupportedOperationException("DELETE not yet supported");
+		throw new UnsupportedOperationException("DELETE");
 	}
 
 	public void visit(Update update) {
-		throw new UnsupportedOperationException("UPDATE not yet supported");
+		throw new UnsupportedOperationException("UPDATE");
 	}
 
 	public void visit(Insert insert) {
-		throw new UnsupportedOperationException("INSERT not yet supported");
+		throw new UnsupportedOperationException("INSERT");
 	}
 
 	public void visit(Replace replace) {
-		throw new UnsupportedOperationException("REPLACE not yet supported");
+		throw new UnsupportedOperationException("REPLACE");
 	}
 
 	public void visit(Drop drop) {
@@ -46,26 +44,26 @@ public class StatementProcessor implements StatementVisitor
 	}
 
 	public void visit(Truncate truncate) {
-		throw new UnsupportedOperationException("TRUNCATE not yet supported");
+		throw new UnsupportedOperationException("TRUNCATE");
 	}
 
 	public void visit(CreateIndex createIndex) {
-		throw new UnsupportedOperationException("CREATE INDEX not supported");
+		throw new UnsupportedOperationException("CREATE INDEX");
 	}
 
 	public void visit(CreateTable createTable) {
-		throw new UnsupportedOperationException("CREATE TABLE not supported");
+		throw new UnsupportedOperationException("CREATE TABLE");
 	}
 
 	public void visit(CreateView createView) {
-		throw new UnsupportedOperationException("CREATE VIEW not supported");
+		throw new UnsupportedOperationException("CREATE VIEW");
 	}
 
 	public void visit(Alter alter) {
-		throw new UnsupportedOperationException("ALTER not supported");
+		throw new UnsupportedOperationException("ALTER");
 	}
 
 	public void visit(Statements stmts) {
-		throw new UnsupportedOperationException("Multiple statements not supported");
+		throw new UnsupportedOperationException("Multiple statements");
 	}
 }

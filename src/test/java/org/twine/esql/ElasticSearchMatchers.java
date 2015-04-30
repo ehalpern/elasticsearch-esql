@@ -1,4 +1,4 @@
-package org.nlpcn.es4sql;
+package org.twine.esql;
 
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;

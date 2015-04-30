@@ -1,4 +1,4 @@
-package org.nlpcn.es4sql;
+package org.twine.esql;
 
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.junit.Test;

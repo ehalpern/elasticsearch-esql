@@ -1,9 +1,11 @@
 package org.twine.esql;
 
+import org.elasticsearch.ElasticsearchParseException;
+
 /**
  * Created by eric on 4/9/15.
  */
-public class EsqlInputException extends IllegalArgumentException
+public class EsqlInputException extends ElasticsearchParseException
 {
   public EsqlInputException(String message) {
     super(message);
@@ -11,9 +13,5 @@ public class EsqlInputException extends IllegalArgumentException
 
   public EsqlInputException(String message, Throwable cause) {
     super(message, cause);
-  }
-
-  public EsqlInputException(Throwable cause) {
-    super("Unexpected", cause);
   }
 }

@@ -1,4 +1,4 @@
-package org.nlpcn.es4sql;
+package org.twine.esql;
 
 /**
  * Created by omershelef on 18/12/14.

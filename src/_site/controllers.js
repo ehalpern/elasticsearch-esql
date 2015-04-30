@@ -36,7 +36,7 @@ elasticsearchSqlApp.controller('MainController', function ($scope, $http, $sce) 
             $scope.error = "Error occured! response is not avalible.";
     	  }
     	  else {
-    	  	$scope.error = JSON.stringify(data);
+    	  	$scope.error = data; // JSON.stringify(data);
 		  }
         })
         .finally(function() {

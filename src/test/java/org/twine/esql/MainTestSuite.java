@@ -1,16 +1,10 @@
-package org.nlpcn.es4sql;
+package org.twine.esql;
 
 import org.elasticsearch.action.admin.cluster.node.info.NodesInfoResponse;
-import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequestBuilder;
-import org.elasticsearch.action.admin.indices.delete.DeleteIndexResponse;
-import org.elasticsearch.action.admin.indices.mapping.put.PutMappingRequest;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
-import org.elasticsearch.action.delete.DeleteRequestBuilder;
 import org.elasticsearch.action.deletebyquery.DeleteByQueryRequestBuilder;
-import org.elasticsearch.action.deletebyquery.DeleteByQueryResponse;
 import org.elasticsearch.client.Client;
-import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.io.ByteStreams;
 import org.elasticsearch.common.settings.ImmutableSettings;
 import org.elasticsearch.common.settings.Settings;
@@ -22,9 +16,9 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
+import org.nlpcn.es4sql.SearchDao;
 
 import java.io.FileInputStream;
-import static org.nlpcn.es4sql.TestsConstants.*;
 
 @RunWith(Suite.class)
 @Suite.SuiteClasses({
@@ -53,7 +47,7 @@ public class MainTestSuite {
 		System.out.println(String.format("Found cluster... cluster name: %s", clusterName));
 
 		// Load test data.
-		deleteQuery(TEST_INDEX);
+		deleteQuery(TestsConstants.TEST_INDEX);
 		loadBulk("src/test/resources/accounts.json");
 		loadBulk("src/test/resources/phrases.json");
 		loadBulk("src/test/resources/online.json");
@@ -114,7 +108,7 @@ public class MainTestSuite {
 
 		BulkRequestBuilder bulkBuilder = new BulkRequestBuilder(client);
 		byte[] buffer = ByteStreams.toByteArray(new FileInputStream(jsonPath));
-		bulkBuilder.add(buffer, 0, buffer.length, true, TEST_INDEX, null);
+		bulkBuilder.add(buffer, 0, buffer.length, true, TestsConstants.TEST_INDEX, null);
 		BulkResponse response = bulkBuilder.get();
 
 		if(response.hasFailures()) {
@@ -137,7 +131,7 @@ public class MainTestSuite {
                 "\t}\n" +
                 "}";
 
-        client.admin().indices().preparePutMapping(TEST_INDEX).setType("odbc").setSource(dataMapping).execute().actionGet();
+        client.admin().indices().preparePutMapping(TestsConstants.TEST_INDEX).setType("odbc").setSource(dataMapping).execute().actionGet();
     }
 
 	public static SearchDao getSearchDao() {

@@ -11,7 +11,6 @@ public class ESActionFactory
 	 */
 	public static QueryAction create(Client client, String sql)
 	{
-		//sql = EsqlUtil.compressWhitespace(sql);
 		EsqlCommand command = EsqlInterpreter.interpret(sql);
 		return command.actionQuery(client);
 	}

@@ -29,7 +29,7 @@ import java.util.List;
 import java.util.Map;
 
 
-public class ActionRequestExecuter
+public class RestSqlExecuter
 {
 
 	private RestChannel channel;
@@ -37,7 +37,7 @@ public class ActionRequestExecuter
 	private ActionRequest request;
 	private List<String> columns;
 
-	public ActionRequestExecuter(
+	public RestSqlExecuter(
 		ActionRequest request, RestChannel channel, final Client client, List<String> columns
 	) {
 		this.request = request;
@@ -53,7 +53,6 @@ public class ActionRequestExecuter
 		request.listenerThreaded(false);
 
 		if (request instanceof SearchRequest) {
-			//client.search((SearchRequest) request, new RestStatusToXContentListener<SearchResponse>(channel));
 			client.search((SearchRequest) request, new EsqlResponseTransformer(channel, columns));
 		} else {
 			throw new AssertionError(String.format("Unsupported ActionRequest provided: %s", request.getClass().getName()));

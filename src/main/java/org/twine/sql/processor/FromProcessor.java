@@ -1,29 +1,26 @@
 package org.twine.sql.processor;
 
-
 import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.select.*;
+import org.twine.esql.EsqlUnsupportedFeatureException;
 
-public class FromProcessor implements FromItemVisitor
+public abstract class FromProcessor implements FromItemVisitor
 {
-  public void visit(Table table) {
-    throw new UnsupportedOperationException();
-  }
+  public abstract void visit(Table table);
 
   public void visit(SubSelect subSelect) {
-    throw new UnsupportedOperationException("Sub select not supported");
+    throw new EsqlUnsupportedFeatureException("Sub-select");
   }
 
   public void visit(SubJoin subjoin) {
-    throw new UnsupportedOperationException("Sub join not supported");
+    throw new EsqlUnsupportedFeatureException("Sub-join");
   }
 
   public void visit(LateralSubSelect lateralSubSelect) {
-
-    throw new UnsupportedOperationException("Sub select not supported");
+    throw new EsqlUnsupportedFeatureException("Lateral sub-select");
   }
 
   public void visit(ValuesList valuesList) {
-    throw new UnsupportedOperationException("VALUES not supported in FROM");
+    throw new EsqlUnsupportedFeatureException("VALUES in FROM");
   }
 }

@@ -3,29 +3,16 @@ package org.twine.sql.processor;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.ExpressionVisitor;
 import net.sf.jsqlparser.statement.select.*;
+import org.twine.esql.EsqlUnsupportedFeatureException;
 
-public class SelectStatementProcessor implements SelectVisitor
+public abstract class SelectStatementProcessor implements SelectVisitor
 {
-  protected SelectItemVisitor selectItem() {
-		return new SelectItemProcessor();
-	}
-
-	protected FromItemVisitor from() {
-		return new FromProcessor();
-	}
-
-	protected ExpressionVisitor where() {
-		return new WhereExpressionProcessor();
-	}
-
-	protected ExpressionVisitor groupBy() {
-		return new GroupByProcessor();
-	}
-
-	protected OrderByVisitor orderBy() {
-		return new OrderByProcessor();
-	}
-
+  protected abstract SelectItemVisitor selectItem();
+	protected abstract FromItemVisitor from();
+	protected abstract ExpressionVisitor where();
+	protected abstract ExpressionVisitor groupBy();
+	protected abstract OrderByVisitor orderBy();
+	protected abstract void visit(Limit limit);
 
 	public void visit(PlainSelect select)
 	{
@@ -56,15 +43,11 @@ public class SelectStatementProcessor implements SelectVisitor
 		}
 	}
 
-	protected void visit(Limit limit) {
-		throw new UnsupportedOperationException();
-	}
-
 	public void visit(SetOperationList setOpList) {
-		throw new UnsupportedOperationException("Set operations not supported");
+		throw new EsqlUnsupportedFeatureException("Set operations");
 	}
 
 	public void visit(WithItem withItem) {
-		throw new UnsupportedOperationException("WITH clause not supported");
+		throw new EsqlUnsupportedFeatureException("WITH");
 	}
 }
