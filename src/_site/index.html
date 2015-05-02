@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -54,8 +53,7 @@
           <h4>SQL queries</h4>
 
           <p>
-            Use SQL-like queries against elasticsearch. The results will be displayed in the table. You can use autocomple to write
-            your queries easier.
+            Use SQL-like queries against elasticsearch.
           </p>
 
           <div class="keyboardSection">
@@ -118,8 +116,8 @@
           <!-- Results area, displayed after search -->
           <div class="fadein" ng-show="resultsColumns.length > 0" ng-cloak>
           	<div>
-            	<h2 class="sub-header">Results</h2>             		
-         		</div>
+              <h2 class="sub-header">Results</h2>
+            </div>
 
             <div class="table-responsive">
               <table class="table table-striped" id="searchResult">
@@ -149,12 +147,27 @@
             </div>
           </div>
 
+          <div id="hintSection" class="fadein" ng-show="resultsColumns.length == 0" ng-cloak>
+            <div>
+              <h4 class="sub-header">Examples</h4>
+            </div>
+            <div class="table-responsive">
+              <table class="table table-striped" id="hintTable">
+                <thead>
+                </thead>
+                <tbody id="hintTableBody">
+                <tr ng-repeat="row in hintRows">
+                  <td ng-repeat="column in hintColumns">
+                    {{row[column]}}
+                  </td>
+                </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
       </div>
     </div>
-
-
-
 
     <!-- Jquery include -->
     <script src="vendor/jquery/jquery-2.1.1.min.js"></script>

@@ -27,6 +27,7 @@ public class EsqlSyntaxException extends EsqlInputException
 
   private static String constructMessage(Throwable t) {
     if (t instanceof ParseException) {
+
       StringBuffer part = new StringBuffer();
       Token first = ((ParseException)t).currentToken;
       Token cur = first;

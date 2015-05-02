@@ -1,15 +1,24 @@
 var elasticsearchSqlApp = angular.module('elasticsearchSqlApp', ["ngAnimate", "ngSanitize"]);
 
-elasticsearchSqlApp.controller('MainController', function ($scope, $http, $sce) {
+elasticsearchSqlApp.controller('MainController', function ($scope, $http, $sce, $q) {
 	$scope.url = getUrl();
 	$scope.error = "";	
 	$scope.resultsColumns = [];
 	$scope.resultsRows = [];
+	$scope.hintColumns = ["q", "desc"];
+	$scope.hintRows = [
+		{ q: "SELECT * FROM i LIMIT 10", desc: "Show the first 10 documents from index i (which each field as a column)" },
+	  { q: "SELECT f1, f3 FROM i LIMIT 10", desc: "Show fields f1 and f3 of the first 10 documents from index i" }
+	];
 	$scope.searchLoading = false;
 	$scope.explainLoading = false;
 	$scope.resultExplan = false;
-	
 
+	$scope.canceller = $q.defer();
+
+	$scope.cancelSearch = function() {
+		$scope.canceller.resolve("cancelled");
+	}
 
 	$scope.search = function() {
 		// Reset results and error box
@@ -24,25 +33,24 @@ elasticsearchSqlApp.controller('MainController', function ($scope, $http, $sce) 
 
 		var query = window.editor.getValue();
 
-		$http.post($scope.url + "_esql", query)
-		.success(function(data, status, headers, config) {
-          var handler = ResultHandlerFactory.create(data);
-          $scope.resultsColumns = handler.getHead();
-          $scope.resultsRows = handler.getBody();
-      
-        })
-        .error(function(data, status, headers, config) {        
-          if(data == "") {
-            $scope.error = "Error occured! response is not avalible.";
-    	  }
-    	  else {
-    	  	$scope.error = data; // JSON.stringify(data);
-		  }
-        })
-        .finally(function() {
-          $scope.searchLoading = false;
-          $scope.$apply()    
-        });
+		$http.post($scope.url + "_esql", query, { timeout: $scope.canceller.promise })
+			.success(function(data, status, headers, config) {
+				var handler = ResultHandlerFactory.create(data);
+				$scope.resultsColumns = handler.getHead();
+				$scope.resultsRows = handler.getBody();
+
+			})
+			.error(function(data, status, headers, config) {
+				if(data == "") {
+					$scope.error = "Error occurred! response is not available.";
+				} else {
+					$scope.error = data; // JSON.stringify(data);
+				}
+			})
+			.finally(function() {
+				$scope.searchLoading = false;
+				$scope.$apply()
+			});
 	}
 	
 	$scope.explain = function() {
@@ -56,40 +64,37 @@ elasticsearchSqlApp.controller('MainController', function ($scope, $http, $sce) 
 
 		saveUrl()
 
-        var query = window.editor.getValue();
+		var query = window.editor.getValue();
 		$http.post($scope.url + "_esql/_explain", query)
-		.success(function(data, status, headers, config) {
-					 $scope.resultExplan = true;
-				   window.explanResult.setValue(JSON.stringify(data, null, "\t"));
-        })
-        .error(function(data, status, headers, config) {        
-        	$scope.resultExplan = false;
-          if(data == "") {
-            $scope.error = "Error occured! response is not avalible.";
-    	  }
-    	  else {
-    	  	$scope.error = JSON.stringify(data);
-		  }
-        })
-        .finally(function() {
-          $scope.explainLoading = false;
-          $scope.$apply()    
-        });
+			.success(function(data, status, headers, config) {
+				 $scope.resultExplan = true;
+				 window.explanResult.setValue(JSON.stringify(data, null, "\t"));
+			})
+			.error(function(data, status, headers, config) {
+				$scope.resultExplan = false;
+				if(data == "") {
+					$scope.error = "Error occured! response is not avalible.";
+				} else {
+					$scope.error = data;
+				}
+			})
+			.finally(function() {
+				$scope.explainLoading = false;
+				$scope.$apply()
+			});
 	}
-	
-	
-	
+
 	$scope.exportCSV = function() {			
-			var columns = $scope.resultsColumns ;
-			var rows = $scope.resultsRows ;
-			var data =arr2csvStr(columns,',') ;
-			for(var i=0; i<rows.length ; i++){
-				data += "\n";
-				data += map2csvStr(columns,rows[i],',') ;
-				
-			}
-			window.location='data:text/csv;charset=utf8,' + encodeURIComponent(data);
-  		return true; 
+		var columns = $scope.resultsColumns ;
+		var rows = $scope.resultsRows ;
+		var data =arr2csvStr(columns,',') ;
+		for(var i=0; i<rows.length ; i++){
+			data += "\n";
+			data += map2csvStr(columns,rows[i],',') ;
+
+		}
+		window.location='data:text/csv;charset=utf8,' + encodeURIComponent(data);
+		return true;
 	}
 
 	$scope.getButtonContent = function(isLoading , defName) {
