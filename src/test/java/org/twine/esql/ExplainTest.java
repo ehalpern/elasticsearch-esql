@@ -22,7 +22,7 @@ public class ExplainTest {
 
 	@Test
 	public void searchSanity() throws IOException, SQLException, NoSuchMethodException, IllegalAccessException, SQLFeatureNotSupportedException, InvocationTargetException {
-		String expectedOutput = Files.toString(new File("src/test/resources/expectedOutput/search_explain.json"), StandardCharsets.UTF_8);
+		String expectedOutput = Files.toString(new File("js/test/resources/expectedOutput/search_explain.json"), StandardCharsets.UTF_8);
 		String result = explain(String.format("SELECT * FROM %s WHERE firstname LIKE 'A%%' AND age > 20 GROUP BY gender", TestsConstants.TEST_INDEX));
 
 		assertThat(result, equalTo(expectedOutput));
@@ -30,7 +30,7 @@ public class ExplainTest {
 
 	@Test
 	public void deleteSanity() throws IOException, SQLException, NoSuchMethodException, IllegalAccessException, SQLFeatureNotSupportedException, InvocationTargetException {
-		String expectedOutput = Files.toString(new File("src/test/resources/expectedOutput/delete_explain.json"), StandardCharsets.UTF_8);
+		String expectedOutput = Files.toString(new File("js/test/resources/expectedOutput/delete_explain.json"), StandardCharsets.UTF_8);
 		String result = explain(String.format("DELETE FROM %s WHERE firstname LIKE 'A%%' AND age > 20", TestsConstants.TEST_INDEX));
 
 		assertThat(result, equalTo(expectedOutput));

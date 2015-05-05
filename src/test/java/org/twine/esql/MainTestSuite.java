@@ -48,12 +48,12 @@ public class MainTestSuite {
 
 		// Load test data.
 		deleteQuery(TestsConstants.TEST_INDEX);
-		loadBulk("src/test/resources/accounts.json");
-		loadBulk("src/test/resources/phrases.json");
-		loadBulk("src/test/resources/online.json");
+		loadBulk("js/test/resources/accounts.json");
+		loadBulk("js/test/resources/phrases.json");
+		loadBulk("js/test/resources/online.json");
 
 		prepareOdbcIndex();
-		loadBulk("src/test/resources/odbc-date-formats.json");
+		loadBulk("js/test/resources/odbc-date-formats.json");
 
 		searchDao = new SearchDao(client);
 		System.out.println("Finished the setup process...");

@@ -1,28 +1,16 @@
 var NavBar = React.createClass({
   render: function() {
     var cs = React.addons.classSet;
+    var Navbar = ReactBootstrap.Navbar;
+    var Nav = ReactBootstrap.Nav;
+    var NavItem = ReactBootstrap.NavItem;
+
     return (
-      <nav className={cs('navbar', 'navbar-inverse', 'navbar-fixed-top')} role="navigation">
-        <div className={cs('container-fluid')}>
-          <div className={cs('navbar-header')}>
-
-            <a className={cs('navbar-brand')} href="#">Elasticsearch QL</a>
-          </div>
-          <div id="navbar" className={cs('navbar-collapse', 'collapse')}>
-            <ul className={cs('nav', 'navbar-nav', 'navbar-right')}>
-
-              <li id="help_btn" data-toggle="modal" data-target="#help_popup">
-                <a title="Help" href="#" data-placement="bottom">Help</a>
-              </li>
-
-            </ul>
-
-            <form className={cs('navbar-form', 'navbar-right')}>
-              <input type="text" id="urlBox" class="form-control" ng-model="url" />
-            </form>
-          </div>
-        </div>
-      </nav>
+      <Navbar inverse fixedTop fluid brand={<a href="#">Elasticsearch ESQL</a>}>
+        <Nav right>
+          <NavItem eventKey={1} href='#'>Help</NavItem>
+        </Nav>
+      </Navbar>
     );
   }
 });
