@@ -4,6 +4,8 @@ import org.elasticsearch.action.ActionRequest;
 import org.elasticsearch.action.ActionRequestBuilder;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.common.inject.Inject;
+import org.elasticsearch.common.logging.ESLogger;
+import org.elasticsearch.common.logging.ESLoggerFactory;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.rest.*;
 import org.nlpcn.es4sql.SearchDao;
@@ -14,8 +16,10 @@ import java.io.IOException;
 import java.sql.SQLException;
 
 public class RestSqlAction extends BaseRestHandler {
+  private static ESLogger LOG = ESLoggerFactory.getLogger(EsqlPlugin.class.getName());
 
-	@Inject
+
+  @Inject
 	public RestSqlAction(Settings settings, Client client, RestController restController) {
 		super(settings, restController, client);
 		restController.registerHandler(RestRequest.Method.POST, "/_esql/_explain", this);
@@ -51,6 +55,7 @@ public class RestSqlAction extends BaseRestHandler {
 		} catch (EsqlInputException e) {
 			channel.sendResponse(new BytesRestResponse(RestStatus.BAD_REQUEST, e.getMessage()));
 		} catch (IOException|SQLException|RuntimeException e) {
+			LOG.warn("Unexpected exception", e);
 			throw e;
 		}
 	}
