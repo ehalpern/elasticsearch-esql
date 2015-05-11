@@ -54,7 +54,7 @@ public class RestSqlAction extends BaseRestHandler {
 			}
 		} catch (EsqlInputException e) {
 			channel.sendResponse(new BytesRestResponse(RestStatus.BAD_REQUEST, e.getMessage()));
-		} catch (IOException|SQLException|RuntimeException e) {
+		} catch (IOException|SQLException|RuntimeException|Error e) {
 			LOG.warn("Unexpected exception", e);
 			throw e;
 		}
