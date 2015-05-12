@@ -14,9 +14,13 @@ import org.parboiled.support.ParsingResult;
 @BuildParseTree
 public class EsqsParser extends BaseParser<Object>
 {
-  private static EsqsParser INSTANCE = Parboiled.createParser(EsqsParser.class);
+  private static EsqsParser INSTANCE = null;
 
   public static ParsingResult parse(String esqs) {
+    // race condition is harmless here
+    if (INSTANCE == null) {
+      INSTANCE = Parboiled.createParser(EsqsParser.class);
+    }
     ParseRunner runner = new BasicParseRunner(INSTANCE.Expression());
     return runner.run(esqs);
   }
